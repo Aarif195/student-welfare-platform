@@ -117,17 +117,17 @@ This project aims to improve student welfare and campus life by solving real pro
 
 
  ### 3. Admin APIs
- | Endpoint | Method | Description |
- |----------|--------|-------------|
- | /admin/login | POST | Admin login |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /admin/login | POST | Admin login |
+| /admin/hostels/pending | GET | List pending hostels for approval |
+| /admin/hostels/:id/approve | PUT | Approve hostel listing |
+| /admin/hostels/:id/reject | PUT | Reject hostel listing |
+| /admin/users | GET | List all students and owners |
+| /admin/users/:id | DELETE | Delete a user |
+| /admin/reviews | GET | View all reviews |
+| /admin/reviews/:id | DELETE | Remove inappropriate review |
 
-### | /admin/hostels/pending | GET | List pending hostels for approval |
- | /admin/hostels/:id/approve | PUT | Approve hostel listing |
- | /admin/hostels/:id/reject | PUT | Reject hostel listing |
- | /admin/users | GET | List all students and owners |
- | /admin/users/:id | DELETE | Delete a user |
- | /admin/reviews | GET | View all reviews |
- | /admin/reviews/:id | DELETE | Remove inappropriate review |
 
  ### 4. Public Endpoints
  | Endpoint | Method | Description |
