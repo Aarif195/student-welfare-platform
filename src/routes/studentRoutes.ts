@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import { validateResult } from "../middleware/validateResult";
+import { validateResult } from "../middlewares/validateResult";
+import { updateProfileValidation } from "../middlewares/validation";
 
 import {
   studentRegisterValidation,
@@ -54,10 +55,13 @@ router.get(
   authorize(["student"]),
   getStudentProfileController
 );
+
 router.put(
   "/profile",
   authenticate,
   authorize(["student"]),
+  updateProfileValidation,
+  validateResult,
   updateStudentProfileController
 );
 
@@ -68,6 +72,7 @@ router.get(
   authorize(["student"]),
   getStudentBookingsController
 );
+
 router.get(
   "/bookings/:id",
   authenticate,
@@ -76,6 +81,7 @@ router.get(
   validateResult,
   getStudentBookingByIdController
 );
+
 router.post(
   "/bookings",
   authenticate,
@@ -84,6 +90,7 @@ router.post(
   validateResult,
   bookRoomController
 );
+
 router.delete(
   "/bookings/:id",
   authenticate,

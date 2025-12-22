@@ -10,6 +10,11 @@ export const getStudentBookingByIdController = (
   res: Response
 ) => {};
 
+export const updateStudentProfileController = (
+  req: Request,
+  res: Response
+) => {};
+
 export const bookRoomController = (
   req: Request,
   res: Response

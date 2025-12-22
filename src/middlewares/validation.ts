@@ -86,3 +86,29 @@ export const reviewValidation = [
 export const paramIdValidation = (paramName: string) => [
   param(paramName).isInt().withMessage(`${paramName} must be an integer`),
 ];
+
+
+
+export const adminLoginValidation = [
+  body("email").isEmail().withMessage("Valid admin email is required"),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
+export const createHostelValidation = [
+  body("name").notEmpty().trim().withMessage("Hostel name is required"),
+  body("address").notEmpty().withMessage("Address is required"),
+  body("description").isLength({ min: 10 }).withMessage("Description must be at least 10 characters"),
+];
+
+export const createRoomValidation = [
+  body("roomNumber").notEmpty().withMessage("Room number is required"),
+  body("type").isIn(["single", "shared"]).withMessage("Type must be single or shared"),
+  body("price").isNumeric().withMessage("Price must be a number"),
+];
+
+
+export const updateProfileValidation = [
+  body("firstName").optional().trim().notEmpty().withMessage("First name cannot be empty"),
+  body("lastName").optional().trim().notEmpty().withMessage("Last name cannot be empty"),
+  body("phoneNumber").optional().isMobilePhone("any").withMessage("Invalid phone number"),
+];

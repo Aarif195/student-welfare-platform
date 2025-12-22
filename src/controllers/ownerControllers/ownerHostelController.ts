@@ -20,7 +20,20 @@ export const updateHostelController = (
   res: Response
 ) => {};
 
+export const updateRoomController = (
+  req: Request,
+  res: Response
+) => {};
+
+
 export const deleteHostelController = (
+  req: Request,
+  res: Response
+) => {};
+
+
+
+export const createRoomController = (
   req: Request,
   res: Response
 ) => {};
