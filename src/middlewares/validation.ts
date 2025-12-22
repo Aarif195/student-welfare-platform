@@ -19,7 +19,7 @@ export const studentRegisterValidation = [
       "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
     ),
   body("phone")
-    .notEmpty()()
+    .notEmpty()
     .isNumeric()
     .withMessage("Phone is required and must be numeric"),
   body("address").optional().isString(),

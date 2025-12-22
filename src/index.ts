@@ -5,6 +5,7 @@ import ownerRoutes from "./routes/ownerRoutes";
 import hostelRoutes from "./routes/hostelRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import publicRoutes from "./routes/publicRoutes";
+import { connectTODB } from "./config/db";
 
 const PORT = process.env.PORT || 5000;
 
@@ -23,4 +24,5 @@ app.use("/public", publicRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  connectTODB()
 });
