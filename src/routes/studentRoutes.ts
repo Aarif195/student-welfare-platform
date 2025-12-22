@@ -1,14 +1,12 @@
 import { Router } from "express";
 
 import { validateResult } from "../middlewares/validateResult";
-import { updateProfileValidation } from "../middlewares/validation";
-
 import {
   studentRegisterValidation,
   studentLoginValidation,
   reviewValidation,
   paramIdValidation,
-  bookingValidation,
+  bookingValidation, updateProfileValidation
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";

@@ -1,12 +1,19 @@
-import { Response } from "express";
-import crypto from "crypto";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-
-export const sendError = (res: Response, msg: string, status = 400) => {
-  res.status(status).json({ error: msg });
+export const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
 };
 
+// For comparing during Login
+export const comparePassword = async (password: string, hashed: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hashed);
+};
 
-export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
-}
+// To create a new token
+export const generateToken = (id: number, role: string): string => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
+    expiresIn: "1d",
+  });
+};

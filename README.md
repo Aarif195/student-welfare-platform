@@ -116,6 +116,25 @@ This project aims to improve student welfare and campus life by solving real pro
 | /owners/hostels
 
 
+ ### 3. Admin APIs
+ | Endpoint | Method | Description |
+ |----------|--------|-------------|
+ | /admin/login | POST | Admin login |
+# | /admin/hostels/pending | GET | List pending hostels for approval |
+ | /admin/hostels/:id/approve | PUT | Approve hostel listing |
+ | /admin/hostels/:id/reject | PUT | Reject hostel listing |
+ | /admin/users | GET | List all students and owners |
+ | /admin/users/:id | DELETE | Delete a user |
+ | /admin/reviews | GET | View all reviews |
+ | /admin/reviews/:id | DELETE | Remove inappropriate review |
+
+ ### 4. Public Endpoints
+ | Endpoint | Method | Description |
+ |----------|--------|-------------|
+ | /hostels | GET | List all approved hostels |
+ | /hostels/:id | GET | Get hostel details including rooms |
+ | /hostels/search | GET | Search/filter hostels by location, price, room type |
+
 
  student-welfare-platform/
 │
