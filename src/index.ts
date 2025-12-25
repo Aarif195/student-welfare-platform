@@ -7,7 +7,7 @@ import adminRoutes from "./routes/adminRoutes";
 import publicRoutes from "./routes/publicRoutes";
 import { connectTODB } from "./config/db";
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 
 const app = express();

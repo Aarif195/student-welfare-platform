@@ -7,14 +7,14 @@ dotenv.config();
 
 // STUDENT VALIDATION
 export const studentRegisterValidation = [
-  body("full_name").notEmpty().withMessage("Full name is required"),
+  body("firstName").notEmpty().withMessage("First name is required"),
+  body("lastName").notEmpty().withMessage("Last name is required"),
   body("email").isEmail().withMessage("Invalid email"),
   body("password")
     .isLength({ min: 8 })
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/
     )
-    .matches(/[A-Za-z]/)
     .withMessage(
       "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
     ),

@@ -9,7 +9,6 @@ export const pool = new Pool({
   },
 });
 
-
 export const connectTODB = async () => {
   try {
     const client = await pool.connect(); 
