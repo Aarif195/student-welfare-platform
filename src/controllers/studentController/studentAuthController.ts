@@ -41,7 +41,7 @@ export const registerStudentController = async (
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("Register error:", error);
+    // console.error("Register error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
