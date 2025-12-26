@@ -88,7 +88,7 @@ router.post(
 );
 
 router.post(
-  "/rooms",
+  "/:hostelId/rooms",
   authenticate,
   authorize(["owner"]),
   createRoomValidation,
@@ -121,7 +121,7 @@ router.delete(
   "/hostels/:hostelId",
   authenticate,
   authorize(["owner"]),
-  paramIdValidation("hostelId"), // This is sufficient
+  paramIdValidation("hostelId"), 
   validateResult,
   deleteHostelController
 );

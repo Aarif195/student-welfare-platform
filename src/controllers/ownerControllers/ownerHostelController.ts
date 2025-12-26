@@ -148,8 +148,46 @@ export const deleteHostelController = async (req: Request, res: Response) => {
   }
 };
 
+// createRoomController
+export const createRoomController = async (req: Request, res: Response) => {
+  const { hostelId } = req.params;
+  const { room_number, capacity, price_per_month } = req.body;
+  const owner_id = (req as any).user.id;
 
-export const createRoomController = (
-  req: Request,
-  res: Response
-) => {};
+    // Check valid integer
+  if (isNaN(Number(hostelId))) {
+    return res.status(400).json({ success: false, message: "Invalid hostel id" });
+  }
+
+  try {
+    // 1. Verify ownership of the hostel
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1", 
+      [hostelId]
+    );
+
+    if (hostelCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Hostel not found" });
+    }
+
+    if (hostelCheck.rows[0].owner_id !== owner_id) {
+      return res.status(403).json({ success: false, message: "Unauthorized: You do not own this hostel" });
+    }
+
+    // 2. Create the room
+    const newRoom = await pool.query(
+      `INSERT INTO Rooms (hostel_id, room_number, capacity, price_per_month) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [hostelId, room_number, capacity, price_per_month]
+    );
+
+    res.status(201).json({ success: true, data: newRoom.rows[0] });
+  } catch (error: any) {
+    console.log("room", error);
+    
+    if (error.code === '23505') {
+      return res.status(400).json({ success: false, message: "Room number already exists in this hostel" });
+    }
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
