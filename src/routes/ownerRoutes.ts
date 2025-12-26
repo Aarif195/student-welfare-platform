@@ -22,7 +22,7 @@ import {
   createHostelController,
   updateHostelController, updateRoomController,
   deleteHostelController,
-  createRoomController,
+  createRoomController,getRoomsByHostelController,deleteRoomController,getSingleRoomController,
 } from "../controllers/ownerControllers/ownerHostelController";
 import {
   getOwnerProfileController,
@@ -78,6 +78,25 @@ router.get(
   getSingleHostelController
 );
 
+router.get(
+  "/hostels/:hostelId/rooms/:roomId",
+  authenticate,
+  authorize(["owner"]),
+  paramIdValidation("hostelId"),
+  paramIdValidation("roomId"),
+  validateResult,
+  getSingleRoomController
+);
+
+router.get(
+  "/hostels/:hostelId/rooms",
+  authenticate,
+  authorize(["owner"]),
+  paramIdValidation("hostelId"),
+  validateResult,
+  getRoomsByHostelController
+);
+
 router.post(
   "/hostels",
   authenticate,
@@ -107,15 +126,14 @@ router.put(
 );
 
 router.put(
-  "/rooms/:roomId",
+  "/hostels/:hostelId/rooms/:roomId",
   authenticate,
   authorize(["owner"]),
-  paramIdValidation('roomId'),
-  createRoomValidation, 
+  paramIdValidation("hostelId"),
+  paramIdValidation("roomId"),
   validateResult,
   updateRoomController
 );
-
 
 router.delete(
   "/hostels/:hostelId",
@@ -126,5 +144,14 @@ router.delete(
   deleteHostelController
 );
 
+router.delete(
+  "/hostels/:hostelId/rooms/:roomId",
+  authenticate,
+  authorize(["owner"]),
+  paramIdValidation("hostelId"),
+  paramIdValidation("roomId"),
+  validateResult,
+  deleteRoomController
+);
 
 export default router;

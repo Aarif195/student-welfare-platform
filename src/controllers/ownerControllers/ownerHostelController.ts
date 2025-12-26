@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../config/db";
 
-
 // getMyHostelsController
 export const getMyHostelsController = async (req: Request, res: Response) => {
   const owner_id = (req as any).user.id;
@@ -15,22 +14,22 @@ export const getMyHostelsController = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       count: result.rowCount,
-      data: result.rows
+      data: result.rows,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching your hostels" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching your hostels" });
   }
 };
 
 // getSingleHostelController
-export const getSingleHostelController = async (req: Request, res: Response) => {
+export const getSingleHostelController = async (
+  req: Request,
+  res: Response
+) => {
   const { hostelId } = req.params;
   const owner_id = (req as any).user.id;
-
-  // Check valid integer
-  if (isNaN(Number(hostelId))) {
-    return res.status(400).json({ success: false, message: "Invalid hostel id" });
-  }
 
   // Debugging logs
   console.log("Searching for Hostel ID:", hostelId);
@@ -38,24 +37,67 @@ export const getSingleHostelController = async (req: Request, res: Response) => 
 
   try {
     // Fetch hostel by ID
-    const result = await pool.query("SELECT * FROM Hostels WHERE id = $1", [parseInt(hostelId)]);
+    const result = await pool.query("SELECT * FROM Hostels WHERE id = $1", [
+      parseInt(hostelId),
+    ]);
 
     // Check 1: Does it exist?
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Hostel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
     }
 
     const hostel = result.rows[0];
 
     // Check 2: Does the owner own it?
     if (hostel.owner_id !== owner_id) {
-      return res.status(403).json({ success: false, message: "Unauthorized: You do not own this hostel" });
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this hostel",
+      });
     }
 
     // Return hostel data
     res.status(200).json({ success: true, data: hostel });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// getSingleRoomController
+export const getSingleRoomController = async (req: Request, res: Response) => {
+  const { hostelId, roomId } = req.params;
+  const owner_id = (req as any).user.id;
+
+  try {
+    // 1. Verify Hostel Ownership
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1", 
+      [hostelId]
+    );
+
+    if (hostelCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Hostel not found" });
+    }
+
+    if (hostelCheck.rows[0].owner_id !== owner_id) {
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+
+    // 2. Fetch the specific room
+    const room = await pool.query(
+      "SELECT * FROM Rooms WHERE id = $1 AND hostel_id = $2",
+      [roomId, hostelId]
+    );
+
+    if (room.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Room not found in this hostel" });
+    }
+
+    res.status(200).json({ success: true, data: room.rows[0] });
+  } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -76,10 +118,12 @@ export const createHostelController = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "Hostel created and awaiting admin approval",
-      data: result.rows[0]
+      data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error creating hostel" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error creating hostel" });
   }
 };
 
@@ -91,15 +135,22 @@ export const updateHostelController = async (req: Request, res: Response) => {
 
   try {
     // 1. Check existence
-    const hostelCheck = await pool.query("SELECT owner_id FROM Hostels WHERE id = $1", [hostelId]);
-    
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1",
+      [hostelId]
+    );
+
     if (hostelCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Hostel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
     }
 
     // 2. Check ownership
     if (hostelCheck.rows[0].owner_id !== owner_id) {
-      return res.status(403).json({ success: false, message: "Unauthorized: Access denied" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized: Access denied" });
     }
 
     // 3. Update
@@ -113,14 +164,60 @@ export const updateHostelController = async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, data: updatedHostel.rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error updating hostel" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error updating hostel" });
   }
 };
 
-export const updateRoomController = (
-  req: Request,
-  res: Response
-) => {};
+// updateRoomController
+export const updateRoomController = async (req: Request, res: Response) => {
+  const { hostelId, roomId } = req.params;
+  const { room_number, capacity, price, availability } = req.body;
+  const owner_id = (req as any).user.id;
+
+  try {
+    // 1. Verify Hostel Ownership
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1",
+      [hostelId]
+    );
+    if (hostelCheck.rows.length === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
+    if (hostelCheck.rows[0].owner_id !== owner_id)
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+
+    // 2. Verify Room belongs to this Hostel
+    const roomCheck = await pool.query(
+      "SELECT id FROM Rooms WHERE id = $1 AND hostel_id = $2",
+      [roomId, hostelId]
+    );
+    if (roomCheck.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Room not found in this hostel" });
+    }
+
+    // 3. Update Room
+    const updatedRoom = await pool.query(
+      `UPDATE Rooms 
+       SET room_number = $1, capacity = $2, price = $3, availability = $4, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $5 
+       RETURNING *`,
+      [room_number, capacity, price, availability, roomId]
+    );
+
+    res.status(200).json({ success: true, data: updatedRoom.rows[0] });
+  } catch (error: any) {
+    if (error.code === "23505")
+      return res
+        .status(400)
+        .json({ success: false, message: "Room number already exists" });
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 // deleteHostelController
 export const deleteHostelController = async (req: Request, res: Response) => {
@@ -129,14 +226,21 @@ export const deleteHostelController = async (req: Request, res: Response) => {
 
   try {
     // 1. Check existence and ownership
-    const hostelCheck = await pool.query("SELECT owner_id FROM Hostels WHERE id = $1", [hostelId]);
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1",
+      [hostelId]
+    );
 
     if (hostelCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Hostel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
     }
 
     if (hostelCheck.rows[0].owner_id !== owner_id) {
-      return res.status(403).json({ success: false, message: "Unauthorized: Access denied" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized: Access denied" });
     }
 
     // 2. Delete
@@ -144,50 +248,142 @@ export const deleteHostelController = async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error deleting hostel" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error deleting hostel" });
+  }
+};
+
+// deleteRoomController
+export const deleteRoomController = async (req: Request, res: Response) => {
+  const { hostelId, roomId } = req.params;
+  const owner_id = (req as any).user.id;
+
+  try {
+    // 1. Verify Hostel Ownership
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1",
+      [hostelId]
+    );
+    if (hostelCheck.rows.length === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
+    if (hostelCheck.rows[0].owner_id !== owner_id)
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+
+    // 2. Verify Room belongs to this Hostel
+    const roomCheck = await pool.query(
+      "SELECT id FROM Rooms WHERE id = $1 AND hostel_id = $2",
+      [roomId, hostelId]
+    );
+    if (roomCheck.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Room not found in this hostel" });
+    }
+
+    // 3. Delete Room
+    await pool.query("DELETE FROM Rooms WHERE id = $1", [roomId]);
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 // createRoomController
 export const createRoomController = async (req: Request, res: Response) => {
   const { hostelId } = req.params;
-  const { room_number, capacity, price_per_month } = req.body;
+  const { room_number, capacity, price } = req.body;
   const owner_id = (req as any).user.id;
 
-    // Check valid integer
+  // Check valid integer
   if (isNaN(Number(hostelId))) {
-    return res.status(400).json({ success: false, message: "Invalid hostel id" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid hostel id" });
   }
 
   try {
     // 1. Verify ownership of the hostel
     const hostelCheck = await pool.query(
-      "SELECT owner_id FROM Hostels WHERE id = $1", 
+      "SELECT owner_id FROM Hostels WHERE id = $1",
       [hostelId]
     );
 
     if (hostelCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Hostel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
     }
 
     if (hostelCheck.rows[0].owner_id !== owner_id) {
-      return res.status(403).json({ success: false, message: "Unauthorized: You do not own this hostel" });
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You do not own this hostel",
+      });
     }
 
     // 2. Create the room
     const newRoom = await pool.query(
-      `INSERT INTO Rooms (hostel_id, room_number, capacity, price_per_month) 
+      `INSERT INTO Rooms (hostel_id, room_number, capacity, price) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [hostelId, room_number, capacity, price_per_month]
+      [hostelId, room_number, capacity, price]
     );
 
     res.status(201).json({ success: true, data: newRoom.rows[0] });
   } catch (error: any) {
     console.log("room", error);
-    
-    if (error.code === '23505') {
-      return res.status(400).json({ success: false, message: "Room number already exists in this hostel" });
+
+    if (error.code === "23505") {
+      return res.status(400).json({
+        success: false,
+        message: "Room number already exists in this hostel",
+      });
     }
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// getRoomsByHostelController
+export const getRoomsByHostelController = async (
+  req: Request,
+  res: Response
+) => {
+  const { hostelId } = req.params;
+  const owner_id = (req as any).user.id;
+
+  try {
+    // 1. Verify hostel ownership first
+    const hostelCheck = await pool.query(
+      "SELECT owner_id FROM Hostels WHERE id = $1",
+      [hostelId]
+    );
+
+    if (hostelCheck.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
+    }
+
+    if (hostelCheck.rows[0].owner_id !== owner_id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized access" });
+    }
+
+    // 2. Fetch all rooms for this hostel
+    const rooms = await pool.query("SELECT * FROM Rooms WHERE hostel_id = $1", [
+      hostelId,
+    ]);
+
+    res
+      .status(200)
+      .json({ success: true, count: rooms.rowCount, data: rooms.rows });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching rooms" });
   }
 };

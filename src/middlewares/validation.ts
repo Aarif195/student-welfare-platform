@@ -131,7 +131,7 @@ export const createHostelValidation = [
 export const createRoomValidation = [
   body("room_number").notEmpty().withMessage("Room number is required"),
   body("capacity").isNumeric().withMessage("Capacity must be a number"),
-  body("price_per_month").isNumeric().withMessage("Price must be a number"),
+  body("price").isNumeric().withMessage("Price must be a number"),
 ];
 
 export const updateProfileValidation = [
