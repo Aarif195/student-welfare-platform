@@ -83,7 +83,70 @@ export const createHostelController = async (req: Request, res: Response) => {
   }
 };
 
+// updateHostelController
+export const updateHostelController = async (req: Request, res: Response) => {
+  const { hostelId } = req.params;
+  const { name, location, description } = req.body;
+  const owner_id = (req as any).user.id;
 
+  try {
+    // 1. Check existence
+    const hostelCheck = await pool.query("SELECT owner_id FROM Hostels WHERE id = $1", [hostelId]);
+    
+    if (hostelCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Hostel not found" });
+    }
+
+    // 2. Check ownership
+    if (hostelCheck.rows[0].owner_id !== owner_id) {
+      return res.status(403).json({ success: false, message: "Unauthorized: Access denied" });
+    }
+
+    // 3. Update
+    const updatedHostel = await pool.query(
+      `UPDATE Hostels 
+       SET name = $1, location = $2, description = $3, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $4 
+       RETURNING *`,
+      [name, location, description, hostelId]
+    );
+
+    res.status(200).json({ success: true, data: updatedHostel.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error updating hostel" });
+  }
+};
+
+export const updateRoomController = (
+  req: Request,
+  res: Response
+) => {};
+
+// deleteHostelController
+export const deleteHostelController = async (req: Request, res: Response) => {
+  const { hostelId } = req.params;
+  const owner_id = (req as any).user.id;
+
+  try {
+    // 1. Check existence and ownership
+    const hostelCheck = await pool.query("SELECT owner_id FROM Hostels WHERE id = $1", [hostelId]);
+
+    if (hostelCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Hostel not found" });
+    }
+
+    if (hostelCheck.rows[0].owner_id !== owner_id) {
+      return res.status(403).json({ success: false, message: "Unauthorized: Access denied" });
+    }
+
+    // 2. Delete
+    await pool.query("DELETE FROM Hostels WHERE id = $1", [hostelId]);
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error deleting hostel" });
+  }
+};
 
 
 export const createRoomController = (
