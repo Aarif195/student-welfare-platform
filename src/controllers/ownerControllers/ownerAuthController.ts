@@ -30,3 +30,29 @@ export const ownerRegisterController = async (req: Request, res: Response) => {
   }
 };
 
+// ownerLoginController
+export const ownerLoginController = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    const result = await pool.query("SELECT * FROM HostelOwners WHERE email = $1", [email]);
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, result.rows[0].password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: result.rows[0].id, role: 'owner' },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '1d' }
+    );
+
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error during login" });
+  }
+};
