@@ -32,7 +32,6 @@ export const deleteHostelController = (
 ) => {};
 
 
-
 export const createRoomController = (
   req: Request,
   res: Response
