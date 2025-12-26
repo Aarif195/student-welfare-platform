@@ -121,11 +121,11 @@ export const adminLoginValidation = [
 // creating validation
 export const createHostelValidation = [
   body("name").notEmpty().trim().withMessage("Hostel name is required"),
-  body("address").notEmpty().withMessage("Address is required"),
+  body("location").notEmpty().withMessage("Address is required"),
   body("description")
     .isLength({ min: 10 })
     .withMessage("Description must be at least 10 characters"),
-     body("hostel_name").notEmpty().withMessage("Company name is required"),
+    
 ];
 
 export const createRoomValidation = [

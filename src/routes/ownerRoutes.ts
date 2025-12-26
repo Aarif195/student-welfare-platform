@@ -116,16 +116,15 @@ router.put(
   updateRoomController
 );
 
+
 router.delete(
   "/hostels/:hostelId",
   authenticate,
   authorize(["owner"]),
-  paramIdValidation("hostelId"),
-  createHostelValidation,
+  paramIdValidation("hostelId"), // This is sufficient
   validateResult,
   deleteHostelController
 );
-
 
 
 export default router;
