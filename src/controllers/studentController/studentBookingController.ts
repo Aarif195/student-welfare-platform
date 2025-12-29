@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../config/db";
+import { AuthRequest } from "../../middlewares/authMiddleware";
 
 // bookRoomController
 export const bookRoomController = async (req: Request, res: Response) => {
@@ -148,3 +149,24 @@ export const cancelBookingController = async (req: Request, res: Response) => {
   }
 };
 
+// getAllAvailableHostelsController
+export const getAllAvailableHostelsController = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, hostelName, address, city, state, description, facilities, images 
+      FROM Hostels 
+      WHERE status = 'approved' 
+      ORDER BY created_at DESC
+    `);
+
+    res.status(200).json({
+      success: true,
+      count: result.rowCount,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.log(error);
+    
+    res.status(500).json({ success: false, message: "Server error fetching hostels" });
+  }
+};

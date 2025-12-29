@@ -23,6 +23,6 @@ app.use("/public", publicRoutes);
 
 
 app.listen(PORT, () => {
+    connectTODB()
   console.log(`Server running on port ${PORT}`);
-  connectTODB()
 });

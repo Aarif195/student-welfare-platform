@@ -23,7 +23,7 @@ import {
   getStudentBookingsController,
   getStudentBookingByIdController,
   bookRoomController,
-  cancelBookingController,
+  cancelBookingController,getAllAvailableHostelsController,
 } from "../controllers/studentController/studentBookingController";
 import {
   createStudentReviewController,
@@ -61,6 +61,12 @@ router.put(
   updateProfileValidation,
   validateResult,
   updateStudentProfileController
+);
+
+// Hostels Checking
+router.get(
+  "/available-hostels",
+  getAllAvailableHostelsController
 );
 
 // Bookings

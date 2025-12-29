@@ -249,7 +249,7 @@ export const getAllUsersController = async (req: Request, res: Response) => {
 };
 
 // approveBookingController
-export const approveBookingController = async (req: Request, res: Response) => {
+export const approveBookingController = async (req: AuthRequest, res: Response) => {
   const { bookingId } = req.params;
 
   try {
