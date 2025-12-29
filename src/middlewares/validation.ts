@@ -58,7 +58,6 @@ export const ownerRegisterValidation = [
     .notEmpty()
     .isNumeric()
     .withMessage("Phone is required and must be numeric"),
- 
 ];
 
 export const ownerLoginValidation = [
@@ -125,7 +124,6 @@ export const createHostelValidation = [
   body("description")
     .isLength({ min: 10 })
     .withMessage("Description must be at least 10 characters"),
-    
 ];
 
 export const createRoomValidation = [

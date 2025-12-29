@@ -64,18 +64,18 @@ router.delete(
   deleteOwnerController
 );
 
-router.post(
+router.patch(
   "/hostels/:hostelId/approve",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   paramIdValidation("hostelId"),
   validateResult,
   approveHostelController
 );
-router.post(
+router.patch(
   "/hostels/:hostelId/reject",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   paramIdValidation("hostelId"),
   validateResult,
   rejectHostelController

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "npx ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "watch": "npx ts-node testConnection.ts"
+    "watch": "npx ts-node testConnection.ts",
+    "admin": "npx ts-node src/scripts/createAdmin.ts"
   },
   "keywords": [
     "Node.js",
