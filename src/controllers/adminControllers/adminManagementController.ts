@@ -2,9 +2,31 @@ import { Request, Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 
-export const getAllStudentsController = (req: Request, res: Response) => {};
+export const getAllStudentsController = async (req: Request, res: Response) => {
+  try {
+    const students = await pool.query(
+      "SELECT id, firstname, lastname, email, created_at FROM Students"
+    );
+    res.status(200).json({ success: true, data: students.rows });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching students" });
+  }
+};
 
-export const getAllOwnersController = (req: Request, res: Response) => {};
+export const getAllOwnersController = async (req: Request, res: Response) => {
+  try {
+    const owners = await pool.query(
+      "SELECT id, firstname, lastname, email, created_at FROM HostelOwners"
+    );
+    res.status(200).json({ success: true, data:owners.rows });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching owners" });
+  }
+};
 
 export const getAllHostelsController = async (req: Request, res: Response) => {
   try {
@@ -91,19 +113,21 @@ export const rejectHostelController = async (
   }
 };
 
-
 export const getAllUsersController = async (req: Request, res: Response) => {
-
   try {
-    const students = await pool.query("SELECT id, firstname, lastname, email, 'student' as role FROM Students");
-    const owners = await pool.query("SELECT id, firstname, lastname, email, 'owner' as role FROM HostelOwners");
+    const students = await pool.query(
+      "SELECT id, firstname, lastname, email, 'student' as role FROM Students"
+    );
+    const owners = await pool.query(
+      "SELECT id, firstname, lastname, email, 'owner' as role FROM HostelOwners"
+    );
 
     res.status(200).json({
       success: true,
       data: {
         students: students.rows,
-        hostelowners: owners.rows
-      }
+        hostelowners: owners.rows,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
