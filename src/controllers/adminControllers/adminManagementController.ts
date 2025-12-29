@@ -6,7 +6,29 @@ export const getAllStudentsController = (req: Request, res: Response) => {};
 
 export const getAllOwnersController = (req: Request, res: Response) => {};
 
-export const getAllHostelsController = (req: Request, res: Response) => {};
+export const getAllHostelsController = async (req: Request, res: Response) => {
+  try {
+    // Fetch all hostels and join with Owners to see who they belong to
+    const result = await pool.query(`
+      SELECT h.*, o.firstname, o.lastname, o.email as owner_email 
+      FROM Hostels h
+      JOIN HostelOwners o ON h.owner_id = o.id
+      ORDER BY h.created_at DESC
+    `);
+
+    res.status(200).json({
+      success: true,
+      count: result.rowCount,
+      data: result.rows,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching all hostels" });
+  }
+};
 
 export const deleteStudentController = (req: Request, res: Response) => {};
 
@@ -63,6 +85,25 @@ export const rejectHostelController = async (
       success: true,
       message: "Hostel rejected successfully",
       data: result.rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+export const getAllUsersController = async (req: Request, res: Response) => {
+
+  try {
+    const students = await pool.query("SELECT id, firstname, lastname, email, 'student' as role FROM Students");
+    const owners = await pool.query("SELECT id, firstname, lastname, email, 'owner' as role FROM HostelOwners");
+
+    res.status(200).json({
+      success: true,
+      data: {
+        students: students.rows,
+        hostelowners: owners.rows
+      }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });

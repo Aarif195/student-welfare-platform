@@ -2,7 +2,10 @@ import { Router } from "express";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
 
-import { paramIdValidation , adminLoginValidation} from "../middlewares/validation";
+import {
+  paramIdValidation,
+  adminLoginValidation,
+} from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
 
 import { adminLoginController } from "../controllers/adminControllers/adminAuthController";
@@ -14,6 +17,7 @@ import {
   deleteOwnerController,
   approveHostelController,
   rejectHostelController,
+  getAllUsersController,
 } from "../controllers/adminControllers/adminManagementController";
 
 const router = Router();
@@ -30,20 +34,27 @@ router.post(
 router.get(
   "/students",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   getAllStudentsController
 );
 router.get(
   "/owners",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   getAllOwnersController
 );
 router.get(
   "/hostels",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   getAllHostelsController
+);
+
+router.get(
+  "/users",
+  authenticate,
+  authorize(["superadmin"]),
+  getAllUsersController
 );
 
 // Actions
