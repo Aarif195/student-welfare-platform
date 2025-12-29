@@ -247,3 +247,27 @@ export const getAllUsersController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// approveBookingController
+export const approveBookingController = async (req: Request, res: Response) => {
+  const { bookingId } = req.params;
+
+  try {
+    const result = await pool.query(
+      "UPDATE Bookings SET status = 'approved', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *",
+      [bookingId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Booking approved successfully", 
+      data: result.rows[0] 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

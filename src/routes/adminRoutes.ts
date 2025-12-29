@@ -10,6 +10,7 @@ import { validateResult } from "../middlewares/validateResult";
 
 import { adminLoginController } from "../controllers/adminControllers/adminAuthController";
 import {
+  approveBookingController,
   getAllStudentsController,
   getAllOwnersController,
   getAllHostelsController,
@@ -59,6 +60,16 @@ router.get(
 );
 
 // Actions
+
+router.patch(
+  "/bookings/:bookingId/approve",
+  authenticate,
+  authorize(["superadmin"]),
+  paramIdValidation("bookingId"),
+  validateResult,
+  approveBookingController
+);
+
 router.delete(
   "/students/:studentId",
   authenticate,
