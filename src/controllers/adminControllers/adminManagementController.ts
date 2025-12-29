@@ -40,4 +40,31 @@ export const approveHostelController = async (
   }
 };
 
+export const rejectHostelController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { hostelId } = req.params;
+  const { reason } = req.body;
 
+  try {
+    const result = await pool.query(
+      "UPDATE Hostels SET status = 'rejected', rejection_reason = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
+      [reason || "No reason provided", hostelId]
+    );
+
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Hostel rejected successfully",
+      data: result.rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
