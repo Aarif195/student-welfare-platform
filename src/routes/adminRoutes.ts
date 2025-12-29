@@ -62,7 +62,7 @@ router.get(
 router.delete(
   "/students/:studentId",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   paramIdValidation("studentId"),
   validateResult,
   deleteStudentController
@@ -70,7 +70,7 @@ router.delete(
 router.delete(
   "/owners/:ownerId",
   authenticate,
-  authorize(["admin"]),
+  authorize(["superadmin"]),
   paramIdValidation("ownerId"),
   validateResult,
   deleteOwnerController

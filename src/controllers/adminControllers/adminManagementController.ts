@@ -62,7 +62,6 @@ export const getAllOwnersController = async (req: Request, res: Response) => {
   }
 };
 
-
 // getAllHostelsController
 export const getAllHostelsController = async (req: Request, res: Response) => {
   try {
@@ -76,13 +75,16 @@ export const getAllHostelsController = async (req: Request, res: Response) => {
     const total = parseInt(totalResult.rows[0].count);
 
     // Fetch paginated results
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT h.*, o.firstName, o.lastName, o.email as owner_email 
       FROM Hostels h
       JOIN HostelOwners o ON h.owner_id = o.id
       ORDER BY h.created_at DESC
       LIMIT $1 OFFSET $2
-    `, [limit, offset]);
+    `,
+      [limit, offset]
+    );
 
     res.status(200).json({
       success: true,
@@ -93,15 +95,51 @@ export const getAllHostelsController = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Server error fetching all hostels" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching all hostels" });
   }
 };
 
 // deleteStudentController
-export const deleteStudentController = (req: Request, res: Response) => {};
+export const deleteStudentController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { studentId } = req.params;
+  try {
+    const result = await pool.query(
+      "DELETE FROM Students WHERE id = $1 RETURNING id",
+      [studentId]
+    );
+    if (result.rowCount === 0)
+      return res.status(404).json({ message: "Student not found" });
+    res
+      .status(200)
+      .send();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 // deleteOwnerController
-export const deleteOwnerController = (req: Request, res: Response) => {};
+export const deleteOwnerController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { ownerId } = req.params;
+  try {
+    const result = await pool.query(
+      "DELETE FROM HostelOwners WHERE id = $1 RETURNING id",
+      [ownerId]
+    );
+    if (result.rowCount === 0)
+      return res.status(404).json({ message: "Owner not found" });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 // approveHostelController
 export const approveHostelController = async (
@@ -169,8 +207,12 @@ export const getAllUsersController = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = (page - 1) * limit;
 
-    const totalStudentsResult = await pool.query("SELECT COUNT(*) FROM Students");
-    const totalOwnersResult = await pool.query("SELECT COUNT(*) FROM HostelOwners");
+    const totalStudentsResult = await pool.query(
+      "SELECT COUNT(*) FROM Students"
+    );
+    const totalOwnersResult = await pool.query(
+      "SELECT COUNT(*) FROM HostelOwners"
+    );
 
     const totalStudents = parseInt(totalStudentsResult.rows[0].count);
     const totalOwners = parseInt(totalOwnersResult.rows[0].count);
@@ -205,4 +247,3 @@ export const getAllUsersController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
