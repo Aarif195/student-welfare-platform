@@ -2,60 +2,108 @@ import { Request, Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 
+// getAllStudentsController
 export const getAllStudentsController = async (req: Request, res: Response) => {
   try {
-    const students = await pool.query(
-      "SELECT id, firstname, lastname, email, created_at FROM Students"
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const totalResult = await pool.query("SELECT COUNT(*) FROM Students");
+    const total = parseInt(totalResult.rows[0].count);
+
+    const result = await pool.query(
+      "SELECT id, firstName, lastName, email, created_at FROM Students ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
     );
-    res.status(200).json({ success: true, data: students.rows });
+
+    res.status(200).json({
+      success: true,
+      page,
+      limit,
+      total,
+      data: result.rows,
+    });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ success: false, message: "Server error fetching students" });
   }
 };
 
+// getAllOwnersController
 export const getAllOwnersController = async (req: Request, res: Response) => {
   try {
-    const owners = await pool.query(
-      "SELECT id, firstname, lastname, email, created_at FROM HostelOwners"
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const totalResult = await pool.query("SELECT COUNT(*) FROM HostelOwners");
+    const total = parseInt(totalResult.rows[0].count);
+
+    const result = await pool.query(
+      "SELECT id, firstName, lastName, email, created_at FROM HostelOwners ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
     );
-    res.status(200).json({ success: true, data:owners.rows });
+
+    res.status(200).json({
+      success: true,
+      page,
+      limit,
+      total,
+      data: result.rows,
+    });
   } catch (error) {
+    console.log(error);
     res
       .status(500)
       .json({ success: false, message: "Server error fetching owners" });
   }
 };
 
+
+// getAllHostelsController
 export const getAllHostelsController = async (req: Request, res: Response) => {
   try {
-    // Fetch all hostels and join with Owners to see who they belong to
+    // Parse query params
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    // Fetch total count first
+    const totalResult = await pool.query(`SELECT COUNT(*) FROM Hostels`);
+    const total = parseInt(totalResult.rows[0].count);
+
+    // Fetch paginated results
     const result = await pool.query(`
-      SELECT h.*, o.firstname, o.lastname, o.email as owner_email 
+      SELECT h.*, o.firstName, o.lastName, o.email as owner_email 
       FROM Hostels h
       JOIN HostelOwners o ON h.owner_id = o.id
       ORDER BY h.created_at DESC
-    `);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
 
     res.status(200).json({
       success: true,
-      count: result.rowCount,
-      data: result.rows,
+      page,
+      limit,
+      total,
+      data: result.rows, // [] if no rows
     });
   } catch (error) {
     console.log(error);
-
-    res
-      .status(500)
-      .json({ success: false, message: "Server error fetching all hostels" });
+    res.status(500).json({ success: false, message: "Server error fetching all hostels" });
   }
 };
 
+// deleteStudentController
 export const deleteStudentController = (req: Request, res: Response) => {};
 
+// deleteOwnerController
 export const deleteOwnerController = (req: Request, res: Response) => {};
 
+// approveHostelController
 export const approveHostelController = async (
   req: AuthRequest,
   res: Response
@@ -84,6 +132,7 @@ export const approveHostelController = async (
   }
 };
 
+// rejectHostelController
 export const rejectHostelController = async (
   req: AuthRequest,
   res: Response
@@ -113,23 +162,47 @@ export const rejectHostelController = async (
   }
 };
 
+// getAllUsersController
 export const getAllUsersController = async (req: Request, res: Response) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const totalStudentsResult = await pool.query("SELECT COUNT(*) FROM Students");
+    const totalOwnersResult = await pool.query("SELECT COUNT(*) FROM HostelOwners");
+
+    const totalStudents = parseInt(totalStudentsResult.rows[0].count);
+    const totalOwners = parseInt(totalOwnersResult.rows[0].count);
+
     const students = await pool.query(
-      "SELECT id, firstname, lastname, email, 'student' as role FROM Students"
+      "SELECT id, firstName, lastName, email, 'student' as role FROM Students ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
     );
+
     const owners = await pool.query(
-      "SELECT id, firstname, lastname, email, 'owner' as role FROM HostelOwners"
+      "SELECT id, firstName, lastName, email, 'owner' as role FROM HostelOwners ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
     );
 
     res.status(200).json({
       success: true,
-      data: {
-        students: students.rows,
-        hostelowners: owners.rows,
+      students: {
+        page,
+        limit,
+        total: totalStudents,
+        data: students.rows,
+      },
+      hostelowners: {
+        page,
+        limit,
+        total: totalOwners,
+        data: owners.rows,
       },
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+

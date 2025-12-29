@@ -37,6 +37,7 @@ router.get(
   authorize(["superadmin"]),
   getAllStudentsController
 );
+
 router.get(
   "/owners",
   authenticate,
