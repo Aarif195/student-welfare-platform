@@ -114,9 +114,7 @@ export const deleteStudentController = async (
     );
     if (result.rowCount === 0)
       return res.status(404).json({ message: "Student not found" });
-    res
-      .status(200)
-      .send();
+    res.status(200).send();
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -249,25 +247,64 @@ export const getAllUsersController = async (req: Request, res: Response) => {
 };
 
 // approveBookingController
-export const approveBookingController = async (req: AuthRequest, res: Response) => {
+export const approveBookingController = async (req: Request, res: Response) => {
   const { bookingId } = req.params;
 
   try {
-    const result = await pool.query(
-      "UPDATE Bookings SET status = 'approved', updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *",
+    // 1. Update Booking Status
+    const bookingUpdate = await pool.query(
+      "UPDATE Bookings SET booking_status = 'approved' WHERE id = $1 RETURNING room_id",
       [bookingId]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+    if (bookingUpdate.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Booking approved successfully", 
-      data: result.rows[0] 
-    });
+    const room_id = bookingUpdate.rows[0].room_id;
+
+    // 2. Flip Room Availability to FALSE
+    await pool.query("UPDATE Rooms SET availability = FALSE WHERE id = $1", [
+      room_id,
+    ]);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Booking approved and room occupied" });
   } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// getAdminPendingBookingsController
+export const getAdminPendingBookingsController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const query = `
+  SELECT 
+    b.id AS booking_id, b.start_date, b.end_date, b.booking_status,
+    s.firstName, s.lastName, s.email AS student_email,
+    r.room_number, r.type AS room_type,
+    h.id AS hostel_id, h.name AS hostel_name, h.location AS hostel_location,
+    p.reference AS payment_reference, p.amount AS amount_paid, p.paid_at
+  FROM Bookings b
+  JOIN Students s ON b.student_id = s.id
+  JOIN Rooms r ON b.room_id = r.id
+  JOIN Hostels h ON r.hostel_id = h.id
+  JOIN Payments p ON b.id = p.booking_id
+  WHERE b.booking_status = 'pending'
+  ORDER BY b.booked_at DESC
+`;
+
+    const result = await pool.query(query);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.log(error);
+
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

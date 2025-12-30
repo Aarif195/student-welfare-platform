@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { pool } from "../../config/db";
+import { AuthRequest } from "../../middlewares/authMiddleware";
 
 // getMyHostelsController
 export const getMyHostelsController = async (req: Request, res: Response) => {
@@ -74,16 +75,20 @@ export const getSingleRoomController = async (req: Request, res: Response) => {
   try {
     // 1. Verify Hostel Ownership
     const hostelCheck = await pool.query(
-      "SELECT owner_id FROM Hostels WHERE id = $1", 
+      "SELECT owner_id FROM Hostels WHERE id = $1",
       [hostelId]
     );
 
     if (hostelCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Hostel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Hostel not found" });
     }
 
     if (hostelCheck.rows[0].owner_id !== owner_id) {
-      return res.status(403).json({ success: false, message: "Unauthorized access" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized access" });
     }
 
     // 2. Fetch the specific room
@@ -93,7 +98,9 @@ export const getSingleRoomController = async (req: Request, res: Response) => {
     );
 
     if (room.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Room not found in this hostel" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Room not found in this hostel" });
     }
 
     res.status(200).json({ success: true, data: room.rows[0] });
@@ -385,5 +392,36 @@ export const getRoomsByHostelController = async (
     res
       .status(500)
       .json({ success: false, message: "Server error fetching rooms" });
+  }
+};
+
+// getOwnerBookingsController
+export const getOwnerBookingsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const owner_id = (req as any).user.id;
+
+  try {
+    const query = `
+  SELECT 
+    s.firstName, s.lastName, s.phone,
+    r.room_number,
+    b.booking_status AS status,
+    b.start_date AS move_in_date
+  FROM Bookings b
+  JOIN Rooms r ON b.room_id = r.id
+  JOIN Hostels h ON r.hostel_id = h.id
+  JOIN Students s ON b.student_id = s.id
+  WHERE h.owner_id = $1
+  ORDER BY b.booked_at DESC
+`;
+
+    const result = await pool.query(query, [owner_id]);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

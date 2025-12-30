@@ -18,7 +18,7 @@ import {
   deleteOwnerController,
   approveHostelController,
   rejectHostelController,
-  getAllUsersController,
+  getAllUsersController, getAdminPendingBookingsController
 } from "../controllers/adminControllers/adminManagementController";
 
 const router = Router();
@@ -59,8 +59,15 @@ router.get(
   getAllUsersController
 );
 
-// Actions
+// get pending bookings
+router.get(
+  "/bookings/pending",
+  authenticate,
+  authorize(["superadmin"]),
+  getAdminPendingBookingsController
+);
 
+// Actions
 router.patch(
   "/bookings/:bookingId/approve",
   authenticate,
@@ -70,6 +77,7 @@ router.patch(
   approveBookingController
 );
 
+
 router.delete(
   "/students/:studentId",
   authenticate,
@@ -78,6 +86,7 @@ router.delete(
   validateResult,
   deleteStudentController
 );
+
 router.delete(
   "/owners/:ownerId",
   authenticate,
@@ -95,6 +104,7 @@ router.patch(
   validateResult,
   approveHostelController
 );
+
 router.patch(
   "/hostels/:hostelId/reject",
   authenticate,
@@ -103,5 +113,7 @@ router.patch(
   validateResult,
   rejectHostelController
 );
+
+
 
 export default router;

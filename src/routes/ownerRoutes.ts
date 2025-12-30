@@ -22,7 +22,7 @@ import {
   createHostelController,
   updateHostelController, updateRoomController,
   deleteHostelController,
-  createRoomController,getRoomsByHostelController,deleteRoomController,getSingleRoomController,
+  createRoomController,getRoomsByHostelController,deleteRoomController,getSingleRoomController,getOwnerBookingsController
 } from "../controllers/ownerControllers/ownerHostelController";
 import {
   getOwnerProfileController,
@@ -153,5 +153,14 @@ router.delete(
   validateResult,
   deleteRoomController
 );
+
+// get student bookings
+router.get(
+  "/students/bookings",
+  authenticate,
+  authorize(["owner"]),
+  getOwnerBookingsController
+);
+
 
 export default router;
