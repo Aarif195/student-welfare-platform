@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 
-export const getHostelReviewsController = (
+export const createStudentReviewController = (
   req: Request,
   res: Response
 ) => {};
 
-export const createReviewController = (
+export const getHostelReviewsController = (
   req: Request,
   res: Response
 ) => {};

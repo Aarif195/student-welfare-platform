@@ -28,10 +28,7 @@ import {
   getAllAvailableHostelsController,
   getAvailableRoomsController,
 } from "../controllers/studentController/studentBookingController";
-import {
-  createStudentReviewController,
-  getHostelReviewsController,
-} from "../controllers/studentController/studentReviewController";
+
 
 const router = Router();
 
@@ -107,20 +104,6 @@ router.delete(
   cancelBookingController
 );
 
-// Reviews
-router.post(
-  "/reviews",
-  authenticate,
-  authorize(["student"]),
-  reviewValidation,
-  validateResult,
-  createStudentReviewController
-);
-router.get(
-  "/reviews/:hostelId",
-  paramIdValidation("hostelId"),
-  validateResult,
-  getHostelReviewsController
-); // public
+
 
 export default router;

@@ -3,7 +3,7 @@ import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 
 // getAllStudentsController
-export const getAllStudentsController = async (req: Request, res: Response) => {
+export const getAllStudentsController = async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -22,7 +22,7 @@ export const getAllStudentsController = async (req: Request, res: Response) => {
       page,
       limit,
       total,
-      data: result.rows,
+      Students: result.rows,
     });
   } catch (error) {
     console.log(error);
@@ -33,7 +33,7 @@ export const getAllStudentsController = async (req: Request, res: Response) => {
 };
 
 // getAllOwnersController
-export const getAllOwnersController = async (req: Request, res: Response) => {
+export const getAllOwnersController = async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -52,7 +52,7 @@ export const getAllOwnersController = async (req: Request, res: Response) => {
       page,
       limit,
       total,
-      data: result.rows,
+      HostelOwners: result.rows,
     });
   } catch (error) {
     console.log(error);
@@ -91,7 +91,7 @@ export const getAllHostelsController = async (req: Request, res: Response) => {
       page,
       limit,
       total,
-      data: result.rows, // [] if no rows
+      Hostels: result.rows, // [] if no rows
     });
   } catch (error) {
     console.log(error);
@@ -199,7 +199,7 @@ export const rejectHostelController = async (
 };
 
 // getAllUsersController
-export const getAllUsersController = async (req: Request, res: Response) => {
+export const getAllUsersController = async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -247,7 +247,7 @@ export const getAllUsersController = async (req: Request, res: Response) => {
 };
 
 // approveBookingController
-export const approveBookingController = async (req: Request, res: Response) => {
+export const approveBookingController = async (req: AuthRequest, res: Response) => {
   const { bookingId } = req.params;
 
   try {
@@ -280,7 +280,7 @@ export const approveBookingController = async (req: Request, res: Response) => {
 
 // getAdminPendingBookingsController
 export const getAdminPendingBookingsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   const { page = 1, limit = 10 } = req.query;

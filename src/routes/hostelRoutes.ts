@@ -4,9 +4,9 @@ import { authorize } from "../middlewares/roleMiddleware";
 
 import {
   paramIdValidation,
-  bookingValidation,
   reviewValidation,
 } from "../middlewares/validation";
+
 import { validateResult } from "../middlewares/validateResult";
 
 
@@ -20,36 +20,17 @@ import {
   bookHostelController,
   cancelBookingController,
 } from "../controllers/hostelControllers/hostelBookingController";
-import {
-  getHostelReviewsController,
-  createStudentReviewController,
-} from "../controllers/studentController/studentReviewController";
+
+import { createStudentReviewController, getHostelReviewsController } from "../controllers/hostelControllers/hostelReviewController";
 
 const router = Router();
 
 // Public
 router.get("/", getAllHostelsController);
 router.get("/search", searchHostelsController);
+
 router.get("/:hostelId", getSingleHostelPublicController);
 
-// Student Booking
-router.post(
-  "/:hostelId/book",
-  authenticate,
-  authorize(["student"]),
-  paramIdValidation("hostelId"),
-  bookingValidation,
-  validateResult,
-  bookHostelController
-);
-router.delete(
-  "/:bookingId/cancel",
-  authenticate,
-  authorize(["student"]),
-  paramIdValidation("bookingId"),
-  validateResult,
-  cancelBookingController
-);
 
 // Reviews
 router.get(

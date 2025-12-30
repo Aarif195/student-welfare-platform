@@ -3,7 +3,7 @@ import { pool } from "../../config/db";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-
+// adminLoginController
 export const adminLoginController = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -17,7 +17,7 @@ export const adminLoginController = async (req: Request, res: Response) => {
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: admin.id, role: admin.role }, // This will be 'superadmin'
+      { id: admin.id, role: admin.role }, //superadmin
       process.env.JWT_SECRET!,
       { expiresIn: "1d" }
     );
