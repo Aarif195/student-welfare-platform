@@ -400,28 +400,60 @@ export const getOwnerBookingsController = async (
   req: AuthRequest,
   res: Response
 ) => {
-  const owner_id = (req as any).user.id;
+  const owner_id = req.user!.id;
+  const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
 
   try {
-    const query = `
-  SELECT 
-    s.firstName, s.lastName, s.phone,
-    r.room_number,
-    b.booking_status AS status,
-    b.start_date AS move_in_date
-  FROM Bookings b
-  JOIN Rooms r ON b.room_id = r.id
-  JOIN Hostels h ON r.hostel_id = h.id
-  JOIN Students s ON b.student_id = s.id
-  WHERE h.owner_id = $1
-  ORDER BY b.booked_at DESC
-`;
+    // total count
+    const countResult = await pool.query(
+      `
+      SELECT COUNT(*) 
+      FROM Bookings b
+      JOIN Rooms r ON b.room_id = r.id
+      JOIN Hostels h ON r.hostel_id = h.id
+      WHERE h.owner_id = $1
+      `,
+      [owner_id]
+    );
 
-    const result = await pool.query(query, [owner_id]);
-    res.status(200).json({ success: true, data: result.rows });
+    const total = Number(countResult.rows[0].count);
+
+    // paginated data
+    const result = await pool.query(
+      `
+      SELECT 
+        s.firstName,
+        s.lastName,
+        s.phone,
+        r.room_number,
+        b.booking_status AS status,
+        b.start_date AS move_in_date
+      FROM Bookings b
+      JOIN Rooms r ON b.room_id = r.id
+      JOIN Hostels h ON r.hostel_id = h.id
+      JOIN Students s ON b.student_id = s.id
+      WHERE h.owner_id = $1
+      ORDER BY b.booked_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [owner_id, pageLimit, offset]
+    );
+
+    res.status(200).json({
+      success: true,
+      meta: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
+      data: result.rows,
+    });
   } catch (error) {
-    console.log(error);
-
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
