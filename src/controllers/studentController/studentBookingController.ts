@@ -151,54 +151,107 @@ export const cancelBookingController = async (req: Request, res: Response) => {
 
 // getAllAvailableHostelsController
 export const getAllAvailableHostelsController = async (req: Request, res: Response) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
+
   try {
-    const result = await pool.query(`
-      SELECT id, owner_id, name, location, description , created_at,updated_at
+    // total count
+    const countResult = await pool.query(`
+      SELECT COUNT(*) 
       FROM Hostels 
-      WHERE status = 'approved' 
-      ORDER BY created_at DESC
+      WHERE status = 'approved'
     `);
+
+    const total = Number(countResult.rows[0].count);
+
+    // paginated data
+    const result = await pool.query(
+      `
+      SELECT id, owner_id, name, location, description, created_at, updated_at
+      FROM Hostels
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+      `,
+      [pageLimit, offset]
+    );
 
     res.status(200).json({
       success: true,
-      count: result.rowCount,
+      meta: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
       data: result.rows,
     });
   } catch (error) {
-    console.log(error);
-    
-    res.status(500).json({ success: false, message: "Server error fetching hostels" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching hostels" });
   }
 };
 
+
 // getAvailableRoomsController
 export const getAvailableRoomsController = async (req: Request, res: Response) => {
-  const { hostel_id, price, capacity, sort } = req.query;
+  const { hostel_id, price, capacity, sort, page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
 
   try {
-    // Determine sorting order
-    let orderBy = "r.created_at DESC"; // default
+    let orderBy = "r.created_at DESC";
     if (sort === "price_asc") orderBy = "r.price ASC";
     if (sort === "price_desc") orderBy = "r.price DESC";
 
-    const result = await pool.query(`
+    // total count
+    const countResult = await pool.query(
+      `
+      SELECT COUNT(*) 
+      FROM Rooms r
+      INNER JOIN Hostels h ON r.hostel_id = h.id
+      WHERE h.status = 'approved'
+      AND r.availability = TRUE
+      AND ($1::integer IS NULL OR r.hostel_id = $1)
+      AND ($2::numeric IS NULL OR r.price <= $2)
+      AND ($3::integer IS NULL OR r.capacity = $3)
+      `,
+      [hostel_id || null, price || null, capacity || null]
+    );
+
+    const total = Number(countResult.rows[0].count);
+
+    const result = await pool.query(
+      `
       SELECT 
-        r.id,r.hostel_id, r.room_number, r.type, r.capacity, r.price, r.images,
+        r.id, r.hostel_id, r.room_number, r.type, r.capacity, r.price, r.images,
         h.name as hostel_name, h.location as hostel_location
       FROM Rooms r
       INNER JOIN Hostels h ON r.hostel_id = h.id
-      WHERE h.status = 'approved' 
+      WHERE h.status = 'approved'
       AND r.availability = TRUE
       AND ($1::integer IS NULL OR r.hostel_id = $1)
       AND ($2::numeric IS NULL OR r.price <= $2)
       AND ($3::integer IS NULL OR r.capacity = $3)
       ORDER BY ${orderBy}
-    `, [hostel_id || null, price || null, capacity || null]);
+      LIMIT $4 OFFSET $5
+      `,
+      [hostel_id || null, price || null, capacity || null, pageLimit, offset]
+    );
 
     res.status(200).json({
       success: true,
-      count: result.rowCount,
-      data: result.rows
+      meta: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
+      data: result.rows,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
