@@ -1,54 +1,70 @@
 import { Request, Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
+import { verifyPayment } from "../../utils/helper";
 
 // bookRoomController
-export const bookRoomController = async (req: Request, res: Response) => {
-  const { room_id, start_date, end_date, total_price } = req.body;
+export const bookRoomController = async (req: AuthRequest, res: Response) => {
+  const { room_id, reference, start_date, end_date } = req.body;
   const student_id = (req as any).user.id;
 
   try {
-    // 1. Check if room exists and is available using 'availability' column
+    // 1. Check if room is available
     const roomCheck = await pool.query(
-      "SELECT id FROM Rooms WHERE id = $1 AND availability = TRUE", 
-      [room_id]
-    );
-    
-    if (roomCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Room is currently occupied or unavailable" });
-    }
-
-
-    // 2. Conflict Protection: Check if there is already a 'pending' or 'approved' booking for this room
-    const conflictCheck = await pool.query(
-      "SELECT id FROM Bookings WHERE room_id = $1 AND booking_status IN ('pending', 'approved')",
+      "SELECT price, availability FROM Rooms WHERE id = $1",
       [room_id]
     );
 
-    if (conflictCheck.rows.length > 0) {
-      return res.status(400).json({ success: false, message: "This room is already reserved by another student" });
+    if (roomCheck.rowCount === 0 || !roomCheck.rows[0].availability) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Room unavailable" });
     }
 
-    // 3. Create the booking using your exact column names
-    const newBooking = await pool.query(
-      `INSERT INTO Bookings (student_id, room_id, start_date, end_date, total_price, booking_status) 
-       VALUES ($1, $2, $3, $4, $5, 'pending') 
-       RETURNING *`,
-      [student_id, room_id, start_date, end_date, total_price]
+    const roomPrice = roomCheck.rows[0].price;
+
+    // 2. Verify Payment (using the utility)
+    const isValid = await verifyPayment(reference);
+    if (!isValid) {
+      return res
+        .status(402)
+        .json({ success: false, message: "Payment verification failed" });
+    }
+
+    // 3. Create Booking & Payment Record (Transaction)
+    const booking = await pool.query(
+      `INSERT INTO Bookings (student_id, room_id, price, start_date, end_date, booking_status) 
+       VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`,
+      [student_id, room_id, roomPrice, start_date, end_date]
     );
 
-    res.status(201).json({
-      success: true,
-      message: "Booking request sent successfully",
-      data: newBooking.rows[0]
-    });
+    const booking_id = booking.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO Payments (booking_id, student_id, amount, reference, payment_status, paid_at) 
+       VALUES ($1, $2, $3, $4, 'success', NOW())`,
+      [booking_id, student_id, roomPrice, reference]
+    );
+
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: "Booking pending admin approval",
+        booking_id,
+      });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error creating booking" });
+    console.log(error);
+    
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 // getStudentBookingsController
-export const getStudentBookingsController = async (req: Request, res: Response) => {
+export const getStudentBookingsController = async (
+  req: Request,
+  res: Response
+) => {
   const student_id = (req as any).user.id;
 
   try {
@@ -60,15 +76,20 @@ export const getStudentBookingsController = async (req: Request, res: Response) 
     res.status(200).json({
       success: true,
       count: result.rowCount,
-      data: result.rows
+      data: result.rows,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching bookings" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching bookings" });
   }
 };
 
 //  getStudentBookingByIdController
-export const getStudentBookingByIdController = async (req: Request, res: Response) => {
+export const getStudentBookingByIdController = async (
+  req: Request,
+  res: Response
+) => {
   const { id } = req.params;
   const student_id = (req as any).user.id;
 
@@ -79,20 +100,30 @@ export const getStudentBookingByIdController = async (req: Request, res: Respons
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     res.status(200).json({
       success: true,
-      data: result.rows[0]
+      data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching booking details" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error fetching booking details",
+      });
   }
 };
 
 // updateStudentBookingController
-export const updateStudentBookingController = async (req: Request, res: Response) => {
+export const updateStudentBookingController = async (
+  req: Request,
+  res: Response
+) => {
   const { id } = req.params;
   const { start_date, end_date } = req.body;
   const student_id = (req as any).user.id;
@@ -108,19 +139,22 @@ export const updateStudentBookingController = async (req: Request, res: Response
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Booking not found or cannot be updated (only pending bookings can be modified)" 
+      return res.status(404).json({
+        success: false,
+        message:
+          "Booking not found or cannot be updated (only pending bookings can be modified)",
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Booking dates updated successfully",
-      data: result.rows[0]
+      data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error updating booking" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error updating booking" });
   }
 };
 
@@ -136,21 +170,28 @@ export const cancelBookingController = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     res.status(200).json({
       success: true,
       message: "Booking cancelled successfully",
-      data: result.rows[0]
+      data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error cancelling booking" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error cancelling booking" });
   }
 };
 
 // getAllAvailableHostelsController
-export const getAllAvailableHostelsController = async (req: Request, res: Response) => {
+export const getAllAvailableHostelsController = async (
+  req: Request,
+  res: Response
+) => {
   const { page = 1, limit = 10 } = req.query;
 
   const pageNumber = Number(page);
@@ -195,9 +236,11 @@ export const getAllAvailableHostelsController = async (req: Request, res: Respon
   }
 };
 
-
 // getAvailableRoomsController
-export const getAvailableRoomsController = async (req: Request, res: Response) => {
+export const getAvailableRoomsController = async (
+  req: Request,
+  res: Response
+) => {
   const { hostel_id, price, capacity, sort, page = 1, limit = 10 } = req.query;
 
   const pageNumber = Number(page);

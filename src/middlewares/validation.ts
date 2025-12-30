@@ -84,8 +84,9 @@ const endDateValidator = (value: string, { req }: { req: Request }) => {
 };
 
 export const bookingValidation = [
-  body("hostel_id").notEmpty().withMessage("Hostel ID is required"),
+ 
   body("room_id").notEmpty().withMessage("Room ID is required"),
+  body("reference").notEmpty().withMessage("Payment reference is required"),
   body("start_date").isISO8601().withMessage("Start date must be a valid date"),
   body("end_date")
     .isISO8601()

@@ -16,3 +16,9 @@ export const generateToken = (id: number, role: string): string => {
     expiresIn: "1d",
   });
 };
+
+// paymentUtility
+export const verifyPayment = async (reference: string): Promise<boolean> => {
+  // Logic for external API call (Paystack/Flutterwave) goes here later
+  return true; 
+};
