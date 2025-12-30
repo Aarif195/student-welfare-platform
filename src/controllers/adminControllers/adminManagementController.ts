@@ -344,3 +344,65 @@ export const getAdminPendingBookingsController = async (
   }
 };
 
+// rejectBookingController
+export const rejectBookingController = async (req: AuthRequest, res: Response) => {
+  const { bookingId } = req.params;
+  const { rejection_reason } = req.body;
+
+  if (!rejection_reason) {
+    return res.status(400).json({ success: false, message: "Rejection reason is required" });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1. Update Booking status and reason
+    const bookingQuery = `
+      UPDATE Bookings 
+      SET booking_status = 'rejected', rejection_reason = $1 
+      WHERE id = $2 
+      RETURNING id, room_id, booking_status, rejection_reason
+    `;
+    const bookingRes = await client.query(bookingQuery, [rejection_reason, bookingId]);
+
+    if (bookingRes.rowCount === 0) {
+      throw new Error("Booking not found");
+    }
+
+    // 2. Update Payment status to completed
+    const paymentQuery = `
+      UPDATE Payments 
+      SET refund_status = 'completed' 
+      WHERE booking_id = $1 
+      RETURNING refund_status
+    `;
+    const paymentRes = await client.query(paymentQuery, [bookingId]);
+
+    // 3. Get Student and Room details for the final response
+    const detailsQuery = `
+      SELECT s.firstName, s.lastName, s.email, r.room_number
+      FROM Students s
+      JOIN Bookings b ON s.id = b.student_id
+      JOIN Rooms r ON b.room_id = r.id
+      WHERE b.id = $1
+    `;
+    const detailsRes = await client.query(detailsQuery, [bookingId]);
+
+    await client.query("COMMIT");
+
+    const finalData = {
+      ...bookingRes.rows[0],
+      ...paymentRes.rows[0],
+      ...detailsRes.rows[0]
+    };
+
+    res.status(200).json({ success: true, data: finalData });
+  } catch (error: any) {
+    await client.query("ROLLBACK");
+    res.status(500).json({ success: false, message: error.message || "Server error" });
+  } finally {
+    client.release();
+  }
+};

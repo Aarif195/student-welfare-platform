@@ -10,6 +10,7 @@ import {
 import { validateResult } from "../middlewares/validateResult";
 
 
+
 import {
   getAllHostelsController,
   getSingleHostelPublicController,

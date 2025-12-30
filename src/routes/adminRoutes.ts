@@ -18,7 +18,8 @@ import {
   deleteOwnerController,
   approveHostelController,
   rejectHostelController,
-  getAllUsersController, getAdminPendingBookingsController
+  getAllUsersController,
+  getAdminPendingBookingsController,rejectBookingController
 } from "../controllers/adminControllers/adminManagementController";
 
 const router = Router();
@@ -77,7 +78,6 @@ router.patch(
   approveBookingController
 );
 
-
 router.delete(
   "/students/:studentId",
   authenticate,
@@ -114,6 +114,11 @@ router.patch(
   rejectHostelController
 );
 
-
+router.patch(
+  "/bookings/:bookingId/reject",
+  authenticate,
+  authorize(["superadmin"]),
+  rejectBookingController
+);
 
 export default router;
