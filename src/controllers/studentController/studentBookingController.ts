@@ -59,16 +59,19 @@ export const bookRoomController = async (req: AuthRequest, res: Response) => {
 };
 
 // getMyBookingsController
-export const getMyBookingsController = async (req: Request, res: Response) => {
-  const student_id = (req as any).user.id; 
+export const getMyBookingsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const student_id = (req as any).user.id;
 
   try {
     const query = `
       SELECT 
-        b.id AS booking_id, b.booking_status, b.start_date, b.end_date,
+        b.id AS booking_id, b.booking_status, b.rejection_reason, b.start_date, b.end_date,
         h.name AS hostel_name, h.location AS hostel_location,
         r.room_number, r.type AS room_type,
-        p.amount AS amount_paid, p.reference AS payment_reference, p.paid_at
+        p.amount AS amount_paid, p.reference AS payment_reference, p.refund_status, p.paid_at
       FROM Bookings b
       JOIN Rooms r ON b.room_id = r.id
       JOIN Hostels h ON r.hostel_id = h.id
@@ -307,4 +310,3 @@ export const getAvailableRoomsController = async (
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
