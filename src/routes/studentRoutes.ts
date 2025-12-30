@@ -21,11 +21,12 @@ import {
   updateStudentProfileController,
 } from "../controllers/studentController/studentProfileController";
 import {
-  getStudentBookingsController,
+  getMyBookingsController,
   getStudentBookingByIdController,
   bookRoomController,
   cancelBookingController,
-  getAllAvailableHostelsController, getAvailableRoomsController
+  getAllAvailableHostelsController,
+  getAvailableRoomsController,
 } from "../controllers/studentController/studentBookingController";
 import {
   createStudentReviewController,
@@ -68,17 +69,15 @@ router.put(
 // Hostels Checking
 router.get("/available-hostels", getAllAvailableHostelsController);
 
-
 // rooms
 router.get("/rooms", getAvailableRoomsController);
 
-
 // Bookings
 router.get(
-  "/bookings",
+  "/my-bookings",
   authenticate,
   authorize(["student"]),
-  getStudentBookingsController
+  getMyBookingsController
 );
 
 router.get(

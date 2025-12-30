@@ -58,28 +58,29 @@ export const bookRoomController = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// getStudentBookingsController
-export const getStudentBookingsController = async (
-  req: Request,
-  res: Response
-) => {
-  const student_id = (req as any).user.id;
+// getMyBookingsController
+export const getMyBookingsController = async (req: Request, res: Response) => {
+  const student_id = (req as any).user.id; 
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM Bookings WHERE student_id = $1 ORDER BY booked_at DESC",
-      [student_id]
-    );
+    const query = `
+      SELECT 
+        b.id AS booking_id, b.booking_status, b.start_date, b.end_date,
+        h.name AS hostel_name, h.location AS hostel_location,
+        r.room_number, r.type AS room_type,
+        p.amount AS amount_paid, p.reference AS payment_reference, p.paid_at
+      FROM Bookings b
+      JOIN Rooms r ON b.room_id = r.id
+      JOIN Hostels h ON r.hostel_id = h.id
+      LEFT JOIN Payments p ON b.id = p.booking_id
+      WHERE b.student_id = $1
+      ORDER BY b.booked_at DESC
+    `;
 
-    res.status(200).json({
-      success: true,
-      count: result.rowCount,
-      data: result.rows,
-    });
+    const result = await pool.query(query, [student_id]);
+    res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Server error fetching bookings" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -185,7 +186,7 @@ export const cancelBookingController = async (req: Request, res: Response) => {
 
 // getAllAvailableHostelsController
 export const getAllAvailableHostelsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   const { page = 1, limit = 10 } = req.query;
@@ -234,7 +235,7 @@ export const getAllAvailableHostelsController = async (
 
 // getAvailableRoomsController
 export const getAvailableRoomsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
 ) => {
   const { hostel_id, price, capacity, sort, page = 1, limit = 10 } = req.query;
@@ -306,3 +307,4 @@ export const getAvailableRoomsController = async (
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+

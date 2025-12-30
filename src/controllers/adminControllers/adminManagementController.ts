@@ -294,6 +294,7 @@ export const getAdminPendingBookingsController = async (
     const countResult = await pool.query(`
       SELECT COUNT(*) 
       FROM Bookings b
+      JOIN Payments p ON b.id = p.booking_id
       WHERE b.booking_status = 'pending'
     `);
 
