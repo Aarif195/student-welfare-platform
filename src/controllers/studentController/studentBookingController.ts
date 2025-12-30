@@ -170,3 +170,37 @@ export const getAllAvailableHostelsController = async (req: Request, res: Respon
     res.status(500).json({ success: false, message: "Server error fetching hostels" });
   }
 };
+
+// getAvailableRoomsController
+export const getAvailableRoomsController = async (req: Request, res: Response) => {
+  const { hostel_id, price, capacity, sort } = req.query;
+
+  try {
+    // Determine sorting order
+    let orderBy = "r.created_at DESC"; // default
+    if (sort === "price_asc") orderBy = "r.price ASC";
+    if (sort === "price_desc") orderBy = "r.price DESC";
+
+    const result = await pool.query(`
+      SELECT 
+        r.id,r.hostel_id, r.room_number, r.type, r.capacity, r.price, r.images,
+        h.name as hostel_name, h.location as hostel_location
+      FROM Rooms r
+      INNER JOIN Hostels h ON r.hostel_id = h.id
+      WHERE h.status = 'approved' 
+      AND r.availability = TRUE
+      AND ($1::integer IS NULL OR r.hostel_id = $1)
+      AND ($2::numeric IS NULL OR r.price <= $2)
+      AND ($3::integer IS NULL OR r.capacity = $3)
+      ORDER BY ${orderBy}
+    `, [hostel_id || null, price || null, capacity || null]);
+
+    res.status(200).json({
+      success: true,
+      count: result.rowCount,
+      data: result.rows
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

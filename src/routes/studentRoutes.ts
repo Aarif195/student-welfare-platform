@@ -6,7 +6,8 @@ import {
   studentLoginValidation,
   reviewValidation,
   paramIdValidation,
-  bookingValidation, updateProfileValidation
+  bookingValidation,
+  updateProfileValidation,
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
@@ -23,7 +24,8 @@ import {
   getStudentBookingsController,
   getStudentBookingByIdController,
   bookRoomController,
-  cancelBookingController,getAllAvailableHostelsController,
+  cancelBookingController,
+  getAllAvailableHostelsController, getAvailableRoomsController
 } from "../controllers/studentController/studentBookingController";
 import {
   createStudentReviewController,
@@ -64,10 +66,12 @@ router.put(
 );
 
 // Hostels Checking
-router.get(
-  "/available-hostels",
-  getAllAvailableHostelsController
-);
+router.get("/available-hostels", getAllAvailableHostelsController);
+
+
+// rooms
+router.get("/rooms", getAvailableRoomsController);
+
 
 // Bookings
 router.get(
