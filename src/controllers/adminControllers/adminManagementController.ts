@@ -283,28 +283,63 @@ export const getAdminPendingBookingsController = async (
   req: Request,
   res: Response
 ) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
+
   try {
+    // total count
+    const countResult = await pool.query(`
+      SELECT COUNT(*) 
+      FROM Bookings b
+      WHERE b.booking_status = 'pending'
+    `);
+
+    const total = Number(countResult.rows[0].count);
+
+    // paginated data
     const query = `
-  SELECT 
-    b.id AS booking_id, b.start_date, b.end_date, b.booking_status,
-    s.firstName, s.lastName, s.email AS student_email,
-    r.room_number, r.type AS room_type,
-    h.id AS hostel_id, h.name AS hostel_name, h.location AS hostel_location,
-    p.reference AS payment_reference, p.amount AS amount_paid, p.paid_at
-  FROM Bookings b
-  JOIN Students s ON b.student_id = s.id
-  JOIN Rooms r ON b.room_id = r.id
-  JOIN Hostels h ON r.hostel_id = h.id
-  JOIN Payments p ON b.id = p.booking_id
-  WHERE b.booking_status = 'pending'
-  ORDER BY b.booked_at DESC
-`;
+      SELECT 
+        b.id AS booking_id,
+        b.start_date,
+        b.end_date,
+        b.booking_status,
+        s.firstName,
+        s.lastName,
+        s.email AS student_email,
+        r.room_number,
+        r.type AS room_type,
+        h.id AS hostel_id,
+        h.name AS hostel_name,
+        h.location AS hostel_location,
+        p.reference AS payment_reference,
+        p.amount AS amount_paid,
+        p.paid_at
+      FROM Bookings b
+      JOIN Students s ON b.student_id = s.id
+      JOIN Rooms r ON b.room_id = r.id
+      JOIN Hostels h ON r.hostel_id = h.id
+      JOIN Payments p ON b.id = p.booking_id
+      WHERE b.booking_status = 'pending'
+      ORDER BY b.booked_at DESC
+      LIMIT $1 OFFSET $2
+    `;
 
-    const result = await pool.query(query);
-    res.status(200).json({ success: true, data: result.rows });
+    const result = await pool.query(query, [pageLimit, offset]);
+
+    res.status(200).json({
+      success: true,
+      metadata: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
+      data: result.rows,
+    });
   } catch (error) {
-    console.log(error);
-
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
