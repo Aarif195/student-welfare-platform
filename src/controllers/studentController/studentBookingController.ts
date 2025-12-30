@@ -46,16 +46,14 @@ export const bookRoomController = async (req: AuthRequest, res: Response) => {
       [booking_id, student_id, roomPrice, reference]
     );
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Booking pending admin approval",
-        booking_id,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Booking pending admin approval",
+      booking_id,
+    });
   } catch (error) {
     console.log(error);
-    
+
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -110,12 +108,10 @@ export const getStudentBookingByIdController = async (
       data: result.rows[0],
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error fetching booking details",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching booking details",
+    });
   }
 };
 
@@ -260,6 +256,11 @@ export const getAvailableRoomsController = async (
       INNER JOIN Hostels h ON r.hostel_id = h.id
       WHERE h.status = 'approved'
       AND r.availability = TRUE
+      AND NOT EXISTS (
+  SELECT 1 FROM Bookings b 
+  WHERE b.room_id = r.id 
+  AND b.booking_status IN ('pending', 'approved')
+)
       AND ($1::integer IS NULL OR r.hostel_id = $1)
       AND ($2::numeric IS NULL OR r.price <= $2)
       AND ($3::integer IS NULL OR r.capacity = $3)
@@ -278,6 +279,11 @@ export const getAvailableRoomsController = async (
       INNER JOIN Hostels h ON r.hostel_id = h.id
       WHERE h.status = 'approved'
       AND r.availability = TRUE
+      AND NOT EXISTS (
+    SELECT 1 FROM Bookings b 
+    WHERE b.room_id = r.id 
+    AND b.booking_status IN ('pending', 'approved')
+  )
       AND ($1::integer IS NULL OR r.hostel_id = $1)
       AND ($2::numeric IS NULL OR r.price <= $2)
       AND ($3::integer IS NULL OR r.capacity = $3)
