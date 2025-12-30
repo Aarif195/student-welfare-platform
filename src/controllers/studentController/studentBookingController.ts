@@ -153,7 +153,7 @@ export const cancelBookingController = async (req: Request, res: Response) => {
 export const getAllAvailableHostelsController = async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT id, hostelName, address, city, state, description, facilities, images 
+      SELECT id, owner_id, name, location, description , created_at,updated_at
       FROM Hostels 
       WHERE status = 'approved' 
       ORDER BY created_at DESC
