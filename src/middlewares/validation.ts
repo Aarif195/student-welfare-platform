@@ -95,7 +95,6 @@ export const bookingValidation = [
 
 // REVIEW VALIDATION
 export const reviewValidation = [
-  body("hostel_id").notEmpty().withMessage("Hostel ID is required"),
   body("rating")
     .notEmpty()
     .withMessage("Rating is required")

@@ -5,17 +5,40 @@ import { AuthRequest } from "../../middlewares/authMiddleware";
 // getMyHostelsController
 export const getMyHostelsController = async (req: Request, res: Response) => {
   const owner_id = (req as any).user.id;
+  const { page = 1, limit = 10 } = req.query;
+
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
 
   try {
-    const result = await pool.query(
-      "SELECT * FROM Hostels WHERE owner_id = $1 ORDER BY created_at DESC",
+    // total count
+    const countResult = await pool.query(
+      "SELECT COUNT(*) FROM Hostels WHERE owner_id = $1",
       [owner_id]
+    );
+    const total = Number(countResult.rows[0].count);
+
+    // paginated data
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM Hostels
+      WHERE owner_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [owner_id, pageLimit, offset]
     );
 
     res.status(200).json({
       success: true,
-      count: result.rowCount,
-      data: result.rows,
+      meta: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
+      MyHostels: result.rows,
     });
   } catch (error) {
     res
@@ -361,8 +384,13 @@ export const getRoomsByHostelController = async (
   const { hostelId } = req.params;
   const owner_id = (req as any).user.id;
 
+  const { page = 1, limit = 10 } = req.query;
+  const pageNumber = Number(page);
+  const pageLimit = Number(limit);
+  const offset = (pageNumber - 1) * pageLimit;
+
   try {
-    // 1. Verify hostel ownership first
+    // 1. Verify hostel ownership
     const hostelCheck = await pool.query(
       "SELECT owner_id FROM Hostels WHERE id = $1",
       [hostelId]
@@ -380,14 +408,34 @@ export const getRoomsByHostelController = async (
         .json({ success: false, message: "Unauthorized access" });
     }
 
-    // 2. Fetch all rooms for this hostel
-    const rooms = await pool.query("SELECT * FROM Rooms WHERE hostel_id = $1", [
-      hostelId,
-    ]);
+    // 2. Total rooms count
+    const countResult = await pool.query(
+      "SELECT COUNT(*) FROM Rooms WHERE hostel_id = $1",
+      [hostelId]
+    );
+    const total = Number(countResult.rows[0].count);
 
-    res
-      .status(200)
-      .json({ success: true, count: rooms.rowCount, data: rooms.rows });
+    // 3. Paginated rooms
+    const rooms = await pool.query(
+      `
+      SELECT *
+      FROM Rooms
+      WHERE hostel_id = $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [hostelId, pageLimit, offset]
+    );
+
+    res.status(200).json({
+      success: true,
+      meta: {
+        page: pageNumber,
+        limit: pageLimit,
+        total,
+      },
+      MyRooms: rooms.rows,
+    });
   } catch (error) {
     res
       .status(500)
