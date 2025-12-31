@@ -87,103 +87,57 @@ export const getMyBookingsController = async (
   }
 };
 
-//  getStudentBookingByIdController
-export const getStudentBookingByIdController = async (
-  req: Request,
-  res: Response
-) => {
-  const { id } = req.params;
-  const student_id = (req as any).user.id;
-
-  try {
-    const result = await pool.query(
-      "SELECT * FROM Bookings WHERE id = $1 AND student_id = $2",
-      [id, student_id]
-    );
-
-    if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: result.rows[0],
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error fetching booking details",
-    });
-  }
-};
-
-// updateStudentBookingController
-export const updateStudentBookingController = async (
-  req: Request,
-  res: Response
-) => {
-  const { id } = req.params;
-  const { start_date, end_date } = req.body;
-  const student_id = (req as any).user.id;
-
-  try {
-    // Only allow update if the booking is still 'pending'
-    const result = await pool.query(
-      `UPDATE Bookings 
-       SET start_date = $1, end_date = $2 
-       WHERE id = $3 AND student_id = $4 AND booking_status = 'pending' 
-       RETURNING *`,
-      [start_date, end_date, id, student_id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Booking not found or cannot be updated (only pending bookings can be modified)",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Booking dates updated successfully",
-      data: result.rows[0],
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Server error updating booking" });
-  }
-};
-
 // cancelBookingController
 export const cancelBookingController = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const student_id = (req as any).user.id;
+  const { bookingId } = req.params;
+ const student_id = (req as any).user.id;
+
+  const client = await pool.connect();
 
   try {
-    const result = await pool.query(
-      "UPDATE Bookings SET booking_status = 'cancelled' WHERE id = $1 AND student_id = $2 RETURNING *",
-      [id, student_id]
-    );
+    await client.query("BEGIN");
 
-    if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
+    // 1. Check if the booking exists, belongs to the student, and is still pending
+    const checkQuery = `
+      SELECT booking_status FROM Bookings 
+      WHERE id = $1 AND student_id = $2
+    `;
+    const checkRes = await client.query(checkQuery, [bookingId, student_id]);
+
+    if (checkRes.rowCount === 0) {
+      throw new Error("Booking not found");
     }
+
+    if (checkRes.rows[0].booking_status !== 'pending') {
+      throw new Error("Only pending bookings can be cancelled. Please contact admin.");
+    }
+
+    // 2. Update Booking status to cancelled
+    const updateBooking = `
+      UPDATE Bookings SET booking_status = 'cancelled' 
+      WHERE id = $1 RETURNING id, booking_status
+    `;
+    const bookingRes = await client.query(updateBooking, [bookingId]);
+
+    // 3. Update Payment refund status to completed
+    const updatePayment = `
+      UPDATE Payments SET refund_status = 'completed' 
+      WHERE booking_id = $1 RETURNING refund_status
+    `;
+    const paymentRes = await client.query(updatePayment, [bookingId]);
+
+    await client.query("COMMIT");
 
     res.status(200).json({
       success: true,
       message: "Booking cancelled successfully",
-      data: result.rows[0],
+      data: { ...bookingRes.rows[0], ...paymentRes.rows[0] }
     });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Server error cancelling booking" });
+  } catch (error: any) {
+    await client.query("ROLLBACK");
+    res.status(400).json({ success: false, message: error.message });
+  } finally {
+    client.release();
   }
 };
 

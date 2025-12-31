@@ -4,7 +4,6 @@ import { validateResult } from "../middlewares/validateResult";
 import {
   studentRegisterValidation,
   studentLoginValidation,
-  reviewValidation,
   paramIdValidation,
   bookingValidation,
   updateProfileValidation,
@@ -22,13 +21,11 @@ import {
 } from "../controllers/studentController/studentProfileController";
 import {
   getMyBookingsController,
-  getStudentBookingByIdController,
   bookRoomController,
   cancelBookingController,
   getAllAvailableHostelsController,
   getAvailableRoomsController,
 } from "../controllers/studentController/studentBookingController";
-
 
 const router = Router();
 
@@ -77,15 +74,6 @@ router.get(
   getMyBookingsController
 );
 
-router.get(
-  "/bookings/:id",
-  authenticate,
-  authorize(["student"]),
-  paramIdValidation("id"),
-  validateResult,
-  getStudentBookingByIdController
-);
-
 router.post(
   "/bookings",
   authenticate,
@@ -95,11 +83,11 @@ router.post(
   bookRoomController
 );
 
-router.delete(
-  "/bookings/:id",
+router.patch(
+  "/bookings/:bookingId/cancel",
   authenticate,
   authorize(["student"]),
-  paramIdValidation("id"),
+  paramIdValidation("bookingId"),
   validateResult,
   cancelBookingController
 );

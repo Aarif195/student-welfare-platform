@@ -6,20 +6,13 @@ import {
   paramIdValidation,
   reviewValidation,
 } from "../middlewares/validation";
-
 import { validateResult } from "../middlewares/validateResult";
-
 
 
 import {
   getAllHostelsController,
-  getSingleHostelPublicController,
   searchHostelsController,
 } from "../controllers/hostelControllers/hostelPublicController";
-import {
-  bookHostelController,
-  cancelBookingController,
-} from "../controllers/hostelControllers/hostelBookingController";
 
 import { createStudentReviewController, getHostelReviewsController } from "../controllers/hostelControllers/hostelReviewController";
 
@@ -29,7 +22,6 @@ const router = Router();
 router.get("/", getAllHostelsController);
 router.get("/search", searchHostelsController);
 
-router.get("/:hostelId", getSingleHostelPublicController);
 
 
 // Reviews
@@ -39,6 +31,7 @@ router.get(
   validateResult,
   getHostelReviewsController
 );
+
 router.post(
   "/:hostelId/reviews",
   authenticate,
