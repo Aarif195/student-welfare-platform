@@ -21,7 +21,6 @@ export const getOwnerProfileController = async (req: Request, res: Response) => 
   }
 };
 
-
 // updateOwnerProfileController
 export const updateOwnerProfileController = async (req: Request, res: Response) => {
   const { firstName, lastName, phone } = req.body;

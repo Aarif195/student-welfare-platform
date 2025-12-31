@@ -20,8 +20,9 @@ export const studentRegisterValidation = [
     ),
   body("phone")
     .notEmpty()
-    .isNumeric()
-    .withMessage("Phone is required and must be numeric"),
+    .withMessage("Phone is required")
+    .matches(/^\+?\d{7,15}$/)
+    .withMessage("Phone must be a valid number with or without country code"),
   body("address").optional().isString(),
 ];
 
@@ -56,8 +57,9 @@ export const ownerRegisterValidation = [
     ),
   body("phone")
     .notEmpty()
-    .isNumeric()
-    .withMessage("Phone is required and must be numeric"),
+    .withMessage("Phone is required")
+    .matches(/^\+?\d{7,15}$/)
+    .withMessage("Phone must be a valid number with or without country code"),
 ];
 
 export const ownerLoginValidation = [
@@ -106,16 +108,14 @@ export const reviewValidation = [
     .withMessage("Comment max 500 characters"),
 ];
 
-export const replyReviewValidation =[
- body("reply").notEmpty().withMessage("Reply text is required"),
+export const replyReviewValidation = [
+  body("reply").notEmpty().withMessage("Reply text is required"),
 ];
 
 // PARAM VALIDATION
 export const paramIdValidation = (paramName: string) => [
   param(paramName).isInt().withMessage(`${paramName} must be an integer`),
 ];
-
-
 
 export const adminLoginValidation = [
   body("email").isEmail().withMessage("Valid admin email is required"),

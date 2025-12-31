@@ -23,7 +23,6 @@ router.get("/", getAllHostelsController);
 router.get("/search", searchHostelsController);
 
 
-
 // Reviews
 router.get(
   "/:hostelId/reviews",
