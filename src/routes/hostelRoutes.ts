@@ -27,6 +27,8 @@ router.get("/search", searchHostelsController);
 // Reviews
 router.get(
   "/:hostelId/reviews",
+  authenticate,
+  authorize(["student", "owner", "superadmin"]),
   paramIdValidation("hostelId"),
   validateResult,
   getHostelReviewsController

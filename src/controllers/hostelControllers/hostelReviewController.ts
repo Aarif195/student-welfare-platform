@@ -47,7 +47,57 @@ export const createStudentReviewController = async (req: AuthRequest, res: Respo
   }
 };
 
-export const getHostelReviewsController = (
-  req: Request,
-  res: Response
-) => {};
+export const getHostelReviewsController = async (req: AuthRequest, res: Response) => {
+  const { hostelId } = req.params;
+  const user_id = (req as any).user.id;
+  const role = (req as any).user.role;
+
+  try {
+    let query = "";
+    let params: any[] = [];
+
+    if (role === 'student') {
+      // Students only see reviews for the hostel they have an approved booking for
+      query = `
+        SELECT r.*, s.firstName, s.lastName 
+        FROM Reviews r
+        JOIN Students s ON r.student_id = s.id
+        JOIN Bookings b ON b.student_id = r.student_id
+        JOIN Rooms rm ON b.room_id = rm.id
+        WHERE r.hostel_id = $1 AND b.student_id = $2 AND b.booking_status = 'approved'
+      `;
+      params = [hostelId, user_id];
+    } 
+    else if (role === 'owner') {
+      // Owners see reviews for their own hostel only
+      query = `
+        SELECT r.*, s.firstName, s.lastName 
+        FROM Reviews r
+        JOIN Students s ON r.student_id = s.id
+        JOIN Hostels h ON r.hostel_id = h.id
+        WHERE r.hostel_id = $1 AND h.owner_id = $2
+      `;
+      params = [hostelId, user_id];
+    } 
+    else if (role === 'superadmin') {
+      // Admin sees all reviews for the hostel
+      query = `
+        SELECT r.*, s.firstName, s.lastName 
+        FROM Reviews r
+        JOIN Students s ON r.student_id = s.id
+        WHERE r.hostel_id = $1
+      `;
+      params = [hostelId];
+    }
+
+    const result = await pool.query(query, params);
+
+    if (result.rowCount === 0 && role === 'owner') {
+       return res.status(403).json({ success: false, message: "Unauthorized or no reviews found for this hostel." });
+    }
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
