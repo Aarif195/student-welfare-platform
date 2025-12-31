@@ -106,10 +106,16 @@ export const reviewValidation = [
     .withMessage("Comment max 500 characters"),
 ];
 
+export const replyReviewValidation =[
+ body("reply").notEmpty().withMessage("Reply text is required"),
+];
+
 // PARAM VALIDATION
 export const paramIdValidation = (paramName: string) => [
   param(paramName).isInt().withMessage(`${paramName} must be an integer`),
 ];
+
+
 
 export const adminLoginValidation = [
   body("email").isEmail().withMessage("Valid admin email is required"),

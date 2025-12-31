@@ -4,7 +4,7 @@ import { authorize } from "../middlewares/roleMiddleware";
 
 import {
   paramIdValidation,
-  reviewValidation,
+  reviewValidation, replyReviewValidation
 } from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
 
@@ -14,7 +14,7 @@ import {
   searchHostelsController,
 } from "../controllers/hostelControllers/hostelPublicController";
 
-import { createStudentReviewController, getHostelReviewsController } from "../controllers/hostelControllers/hostelReviewController";
+import { createStudentReviewController, getHostelReviewsController, replyToReviewController } from "../controllers/hostelControllers/hostelReviewController";
 
 const router = Router();
 
@@ -42,6 +42,16 @@ router.post(
   reviewValidation,
   validateResult,
   createStudentReviewController
+);
+
+router.patch(
+  "/reviews/:reviewId/reply",
+  authenticate,
+  authorize(["superadmin", "owner"]),
+  paramIdValidation("reviewId"),
+  replyReviewValidation,
+  validateResult,
+  replyToReviewController
 );
 
 export default router;
