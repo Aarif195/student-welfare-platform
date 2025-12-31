@@ -61,10 +61,20 @@ router.put(
 );
 
 // Hostels Checking
-router.get("/available-hostels", getAllAvailableHostelsController);
+router.get(
+  "/available-hostels",
+  authenticate,
+  authorize(["student"]),
+  getAllAvailableHostelsController
+);
 
 // rooms
-router.get("/rooms", getAvailableRoomsController);
+router.get(
+  "/rooms",
+  authenticate,
+  authorize(["student"]),
+  getAvailableRoomsController
+);
 
 // Bookings
 router.get(
@@ -91,7 +101,5 @@ router.patch(
   validateResult,
   cancelBookingController
 );
-
-
 
 export default router;

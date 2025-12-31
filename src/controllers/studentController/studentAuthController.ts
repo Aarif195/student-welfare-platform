@@ -34,7 +34,6 @@ export const registerStudentController = async (
       [firstName, lastName, email, hashedPassword, phone]
     );
 
-    
     res.status(201).json({
       success: true,
       message: "Student registered successfully",

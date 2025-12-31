@@ -181,7 +181,7 @@ export const getAllAvailableHostelsController = async (
         limit: pageLimit,
         total,
       },
-      data: result.rows,
+      AvailableHostels: result.rows,
     });
   } catch (error) {
     res
@@ -258,7 +258,7 @@ export const getAvailableRoomsController = async (
         limit: pageLimit,
         total,
       },
-      data: result.rows,
+      AvailableRooms: result.rows,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });

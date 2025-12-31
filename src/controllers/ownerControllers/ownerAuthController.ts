@@ -3,7 +3,6 @@ import { pool } from "../../config/db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-
 //  ownerRegisterController
 export const ownerRegisterController = async (req: Request, res: Response) => {
   const { firstName, lastName, email, password, phone } = req.body;
