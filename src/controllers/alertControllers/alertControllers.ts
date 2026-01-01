@@ -31,20 +31,26 @@ export const createAlertController = async (
           .status(400)
           .json({ message: "Hostel ID is required for hostel alerts" });
 
+      // Query hostel with approval check
       const hostelCheck = await pool.query(
-        "SELECT id, owner_id FROM hostels WHERE id = $1",
+        "SELECT id, owner_id, status FROM hostels WHERE id = $1 AND status = 'approved'",
         [Number(hostelId)]
       );
 
-      if (hostelCheck.rowCount === 0)
-        return res.status(404).json({ message: "Hostel not found" });
+      if (hostelCheck.rowCount === 0) {
+        return res.status(403).json({
+          message:
+            "Cannot create alert for this hostel. It must be approved and owned by you.",
+        });
+      }
 
       const hostelOwnerId = hostelCheck.rows[0].owner_id;
 
       if (role === "owner" && hostelOwnerId !== userId) {
-        return res
-          .status(403)
-          .json({ message: "Owners can only create alerts for their own hostel" });
+        return res.status(403).json({
+          message:
+            "Owners can only create alerts for their own approved hostel.",
+        });
       }
 
       hostel_id = Number(hostelId);
