@@ -99,18 +99,32 @@ export const getGlobalAlertsController = async (
       return res.status(403).json({ message: "Access denied" });
     }
 
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) FROM alerts WHERE type = 'global'`
+    );
+    const total = parseInt(totalResult.rows[0].count);
+
     const result = await pool.query(
-      `SELECT * FROM alerts WHERE type = 'global' ORDER BY created_at DESC`
+      `SELECT * FROM alerts WHERE type = 'global' ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      [limit, offset]
     );
 
-    return res.status(200).json({ alerts: result.rows });
+    return res.status(200).json({
+      success: true,
+      page,
+      limit,
+      total,
+      alerts: result.rows,
+    });
   } catch (err) {
     console.error("Get global alerts error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 // getHostelAlertsController
 export const getHostelAlertsController = async (
