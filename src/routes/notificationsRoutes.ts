@@ -1,10 +1,9 @@
 import { Router } from "express";
 import {
-  createAlertController,
-  updateAlertController,
-  deleteAlertController,
-  getGlobalAlertsController,
-  getHostelAlertsController,
+  createNotificationController,
+  deleteNotificationController,
+  getGlobalNotificationsController,
+  getHostelNotificationsController,
 } from "../controllers/alertControllers/alertControllers";
 
 import { authenticate } from "../middlewares/authMiddleware";
@@ -15,48 +14,41 @@ import { validateResult } from "../middlewares/validateResult";
 
 const router = Router();
 
-
-// CREATE (Admin / Owner)
+// CREATE (superadmin / Owner)
 router.post(
-  "/hostels/:hostelId/alerts",
+  "/hostels/:hostelId",
   authenticate,
   authorize(["superadmin", "owner"]),
   paramIdValidation("hostelId"),
   validateResult,
-  createAlertController
+  createNotificationController
 );
 
+// CREATE (superadmin /)
 router.post(
-  "/global",
+  "/admin/global",
   authenticate,
   authorize(["superadmin"]),
-  createAlertController
+  createNotificationController
 );
 
-// UPDATE
-// router.put(
-//   "/:alertId",
-//   authenticate,
-//   authorize(["superadmin", "owner"]),
-//   updateAlertController
-// );
-
 // DELETE
-// router.delete(
-//   "/:alertId",
-//   authenticate,
-//   authorize(["superadmin", "owner"]),
-//   deleteAlertController
-// );
+router.delete(
+  "/:notificationId",
+  authenticate,
+  authorize(["superadmin", "owner"]),
+  paramIdValidation("alertId"),
+  validateResult,
+  deleteNotificationController
+);
 
 // READ – Global alerts
 router.get(
-  "/admin/global-alerts",
+  "/admin/global-notifications",
   authenticate,
   authorize(["superadmin", "owner", "student"]),
-  getGlobalAlertsController
+  getGlobalNotificationsController
 );
-
 
 // READ GET all alerts for a specific hostel
 router.get(
@@ -65,7 +57,7 @@ router.get(
   authorize(["owner", "superadmin", "student"]),
   paramIdValidation("hostelId"),
   validateResult,
-  getHostelAlertsController
+  getHostelNotificationsController
 );
 
 export default router;

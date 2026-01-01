@@ -3,7 +3,7 @@ import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 
 // createAlertController
-export const createAlertController = async (
+export const createNotificationController = async (
   req: AuthRequest,
   res: Response
 ) => {
@@ -78,12 +78,50 @@ export const createAlertController = async (
   }
 };
 
-export const updateAlertController = async (req: Request, res: Response) => {};
+// deleteAlertController
+export const deleteNotificationController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { notificationId } = req.params;
 
-export const deleteAlertController = async (req: Request, res: Response) => {};
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    if (!notificationId) return res.status(400).json({ message: "Alert ID is required" });
+
+    // Fetch the alert to check ownership/role
+    const alertCheck = await pool.query(
+      "SELECT id, created_by FROM alerts WHERE id = $1",
+      [Number(notificationId)]
+    );
+
+    if (alertCheck.rowCount === 0) {
+      return res.status(404).json({ message: "Alert not found" });
+    }
+
+    const alert = alertCheck.rows[0];
+
+    // Only superadmin or creator can delete
+    if (role !== "superadmin" && alert.created_by !== userId) {
+      return res.status(403).json({ message: "You are not allowed to delete this alert" });
+    }
+
+    // Delete the alert
+    await pool.query("DELETE FROM alerts WHERE id = $1", [Number(notificationId)]);
+
+    return res.status(204).send();
+  } catch (err) {
+    console.error("Delete alert error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
 
 // getGlobalAlertsController
-export const getGlobalAlertsController = async (
+export const getGlobalNotificationsController = async (
   req: AuthRequest,
   res: Response
 ) => {
@@ -127,7 +165,7 @@ export const getGlobalAlertsController = async (
 };
 
 // getHostelAlertsController
-export const getHostelAlertsController = async (
+export const getHostelNotificationsController = async (
   req: AuthRequest,
   res: Response
 ) => {
