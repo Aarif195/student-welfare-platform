@@ -4,13 +4,22 @@
 This project aims to improve student welfare and campus life by solving real problems such as hostel accommodation, study environment, financial support, and safe campus living.
 
 ## Core Module Features
-- Student registration and login
-- Hostel owner registration and login
-- Hostel and room listing management
-- Booking system
-- Admin approval workflow
-- Reviews system
-- Public access to search and view hostels
+
+### Core Module One
+- Student registration and login  
+- Hostel owner registration and login  
+- Hostel and room listing management  
+- Booking system  
+- Admin approval workflow  
+- Reviews system  
+- Public access to search and view hostels  
+
+### Core Module Two (Campus Notifications)
+- Global notifications created by superadmin  
+- Hostel-specific notifications created by hostel owners  
+- Role-based access control (superadmin, owner, student)  
+- View global and hostel notifications  
+- Delete notifications (superadmin or notification owner)
 
 ---
 
@@ -18,7 +27,8 @@ This project aims to improve student welfare and campus life by solving real pro
 
 ### Students
 - id
-- full_name
+- firstName
+- lastName
 - email
 - password
 - phone
@@ -28,7 +38,8 @@ This project aims to improve student welfare and campus life by solving real pro
 
 ### HostelOwners
 - id
-- full_name
+- firstName
+- lastName
 - email
 - password
 - phone
@@ -77,7 +88,8 @@ This project aims to improve student welfare and campus life by solving real pro
 
 ### Admins
 - id
-- full_name
+- firstName
+- lastName
 - email
 - password
 - role
