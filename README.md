@@ -14,7 +14,7 @@ This project aims to improve student welfare and campus life by solving real pro
 - Reviews system  
 - Public access to search and view hostels  
 
-### Core Module Two (Campus Notifications)
+### Core Module Two (Campus/Hostel Notifications)
 - Global notifications created by superadmin  
 - Hostel-specific notifications created by hostel owners  
 - Role-based access control (superadmin, owner, student)  

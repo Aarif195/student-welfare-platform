@@ -1,16 +1,18 @@
 import { Router } from "express";
-import {
-  createNotificationController,
-  deleteNotificationController,
-  getGlobalNotificationsController,
-  getHostelNotificationsController,
-} from "../controllers/alertControllers/alertControllers";
 
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
 
 import { paramIdValidation } from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
+
+import {
+  createNotificationController,
+  deleteNotificationController,
+  getGlobalNotificationsController,
+  getHostelNotificationsController,
+} from "../controllers/notificationControllers/notificationControllers";
+
 
 const router = Router();
 

@@ -91,31 +91,31 @@ export const deleteNotificationController = async (
     const userId = req.user.id;
     const role = req.user.role;
 
-    if (!notificationId) return res.status(400).json({ message: "Alert ID is required" });
+    if (!notificationId) return res.status(400).json({ message: "notification ID is required" });
 
-    // Fetch the alert to check ownership/role
+    // Fetch the notification to check ownership/role
     const alertCheck = await pool.query(
       "SELECT id, created_by FROM alerts WHERE id = $1",
       [Number(notificationId)]
     );
 
     if (alertCheck.rowCount === 0) {
-      return res.status(404).json({ message: "Alert not found" });
+      return res.status(404).json({ message: "Notification not found" });
     }
 
     const alert = alertCheck.rows[0];
 
     // Only superadmin or creator can delete
     if (role !== "superadmin" && alert.created_by !== userId) {
-      return res.status(403).json({ message: "You are not allowed to delete this alert" });
+      return res.status(403).json({ message: "You are not allowed to delete this notification" });
     }
 
-    // Delete the alert
+    // Delete the notification
     await pool.query("DELETE FROM alerts WHERE id = $1", [Number(notificationId)]);
 
     return res.status(204).send();
   } catch (err) {
-    console.error("Delete alert error:", err);
+    console.error("Delete notification error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
