@@ -94,6 +94,9 @@ export const getHostelAlertsController = async (
 ) => {
   try {
     const { hostelId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 10); 
+    const offset = (page - 1) * limit;
 
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
@@ -117,7 +120,7 @@ export const getHostelAlertsController = async (
     const hostel = hostelCheck.rows[0];
 
     // Only allow access if hostel is approved 
-    if ( hostel.status !== "approved") {
+    if (hostel.status !== "approved") {
       return res.status(403).json({
         message: "Cannot view alerts for unapproved hostel",
       });
@@ -133,16 +136,33 @@ export const getHostelAlertsController = async (
     // Students can only view approved hostels (already covered above)
     // Superadmin can view all approved hostels
 
-    const result = await pool.query(
-      "SELECT * FROM alerts WHERE hostel_id = $1 ORDER BY created_at DESC",
+    // Total alerts count for pagination
+    const totalResult = await pool.query(
+      "SELECT COUNT(*) FROM alerts WHERE hostel_id = $1",
       [Number(hostelId)]
     );
+    const total = parseInt(totalResult.rows[0].count);
 
-    return res.status(200).json({ alerts: result.rows });
+    // Fetch alerts with pagination
+    const result = await pool.query(
+      "SELECT * FROM alerts WHERE hostel_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+      [Number(hostelId), limit, offset]
+    );
+
+    return res.status(200).json({
+      success: true,
+      page,
+      limit,
+      total,
+      alerts: result.rows,
+    });
   } catch (err) {
     console.error("Get hostel alerts error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
 
 
