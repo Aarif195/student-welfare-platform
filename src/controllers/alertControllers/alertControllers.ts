@@ -100,25 +100,38 @@ export const getHostelAlertsController = async (
     const userId = req.user.id;
     const role = req.user.role;
 
-    // Validate hostelId
     if (!hostelId) {
       return res.status(400).json({ message: "Hostel ID is required" });
     }
 
+    // Get hostel info
     const hostelCheck = await pool.query(
-      "SELECT id, owner_id FROM hostels WHERE id = $1",
+      "SELECT id, owner_id, status FROM hostels WHERE id = $1",
       [Number(hostelId)]
     );
 
-    if (hostelCheck.rowCount === 0)
+    if (hostelCheck.rowCount === 0) {
       return res.status(404).json({ message: "Hostel not found" });
-
-    // Only the owner of the hostel or superadmin can see the alerts
-    if (role === "owner" && hostelCheck.rows[0].owner_id !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Owners can only view alerts for their own hostel" });
     }
+
+    const hostel = hostelCheck.rows[0];
+
+    // Only allow access if hostel is approved 
+    if ( hostel.status !== "approved") {
+      return res.status(403).json({
+        message: "Cannot view alerts for unapproved hostel",
+      });
+    }
+
+    // Owners can only view alerts for their own approved hostel
+    if (role === "owner" && hostel.owner_id !== userId) {
+      return res.status(403).json({
+        message: "Owners can only view alerts for their own approved hostel",
+      });
+    }
+
+    // Students can only view approved hostels (already covered above)
+    // Superadmin can view all approved hostels
 
     const result = await pool.query(
       "SELECT * FROM alerts WHERE hostel_id = $1 ORDER BY created_at DESC",
@@ -131,4 +144,5 @@ export const getHostelAlertsController = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
+
 
