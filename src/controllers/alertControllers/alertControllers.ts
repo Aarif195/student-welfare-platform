@@ -82,10 +82,35 @@ export const updateAlertController = async (req: Request, res: Response) => {};
 
 export const deleteAlertController = async (req: Request, res: Response) => {};
 
+// getGlobalAlertsController
 export const getGlobalAlertsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
-) => {};
+) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const role = req.user.role;
+
+    // Only allow students, owners, and superadmin to access
+    if (!["student", "owner", "superadmin"].includes(role)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM alerts WHERE type = 'global' ORDER BY created_at DESC`
+    );
+
+    return res.status(200).json({ alerts: result.rows });
+  } catch (err) {
+    console.error("Get global alerts error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 
 // getHostelAlertsController
 export const getHostelAlertsController = async (

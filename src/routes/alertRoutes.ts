@@ -50,13 +50,15 @@ router.post(
 // );
 
 // READ – Global alerts
-// router.get(
-//   "/",
-//   authenticate,
-//   getGlobalAlertsController
-// );
+router.get(
+  "/admin/global-alerts",
+  authenticate,
+  authorize(["superadmin", "owner", "student"]),
+  getGlobalAlertsController
+);
 
-// GET all alerts for a specific hostel
+
+// READ GET all alerts for a specific hostel
 router.get(
   "/hostel/:hostelId",
   authenticate,
