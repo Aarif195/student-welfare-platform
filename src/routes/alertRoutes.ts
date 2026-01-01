@@ -33,17 +33,11 @@ router.post(
   createAlertController
 );
 
-
-// POST /alerts/null
-
-// POST /alerts/12
-
-
 // UPDATE
 // router.put(
 //   "/:alertId",
 //   authenticate,
-//   authorize(["admin", "owner"]),
+//   authorize(["superadmin", "owner"]),
 //   updateAlertController
 // );
 
@@ -51,7 +45,7 @@ router.post(
 // router.delete(
 //   "/:alertId",
 //   authenticate,
-//   authorize(["admin", "owner"]),
+//   authorize(["superadmin", "owner"]),
 //   deleteAlertController
 // );
 
@@ -62,11 +56,14 @@ router.post(
 //   getGlobalAlertsController
 // );
 
-// READ – Hostel-specific alerts
-// router.get(
-//   "/hostels/:hostelId",
-//   authenticate,
-//   getHostelAlertsController
-// );
+// GET all alerts for a specific hostel
+router.get(
+  "/hostel/:hostelId",
+  authenticate,
+  authorize(["owner", "superadmin", "student"]),
+  paramIdValidation("hostelId"),
+  validateResult,
+  getHostelAlertsController
+);
 
 export default router;

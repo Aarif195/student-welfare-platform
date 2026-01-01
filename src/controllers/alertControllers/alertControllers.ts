@@ -81,7 +81,48 @@ export const getGlobalAlertsController = async (
   res: Response
 ) => {};
 
+// getHostelAlertsController
 export const getHostelAlertsController = async (
-  req: Request,
+  req: AuthRequest,
   res: Response
-) => {};
+) => {
+  try {
+    const { hostelId } = req.params;
+
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    // Validate hostelId
+    if (!hostelId) {
+      return res.status(400).json({ message: "Hostel ID is required" });
+    }
+
+    const hostelCheck = await pool.query(
+      "SELECT id, owner_id FROM hostels WHERE id = $1",
+      [Number(hostelId)]
+    );
+
+    if (hostelCheck.rowCount === 0)
+      return res.status(404).json({ message: "Hostel not found" });
+
+    // Only the owner of the hostel or superadmin can see the alerts
+    if (role === "owner" && hostelCheck.rows[0].owner_id !== userId) {
+      return res
+        .status(403)
+        .json({ message: "Owners can only view alerts for their own hostel" });
+    }
+
+    const result = await pool.query(
+      "SELECT * FROM alerts WHERE hostel_id = $1 ORDER BY created_at DESC",
+      [Number(hostelId)]
+    );
+
+    return res.status(200).json({ alerts: result.rows });
+  } catch (err) {
+    console.error("Get hostel alerts error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
