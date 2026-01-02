@@ -13,6 +13,9 @@ export const registerStudentController = async (
 ) => {
   const { firstName, lastName, email, password, phone } = req.body;
 
+// Get the file path from multer if it exists
+  const profile_image = req.file ? req.file.path : null;
+
   try {
     // Check if email exists
     const userExist = await pool.query(
@@ -30,8 +33,8 @@ export const registerStudentController = async (
 
     // Insert student
     const result = await pool.query(
-      "INSERT INTO students (firstName, lastName, email, password, phone) VALUES ($1, $2, $3, $4, $5) RETURNING id, email",
-      [firstName, lastName, email, hashedPassword, phone]
+      "INSERT INTO students (firstName, lastName, email, password, phone, profile_image) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, profile_image", 
+      [firstName, lastName, email, hashedPassword, phone, profile_image]
     );
 
     res.status(201).json({
@@ -40,7 +43,7 @@ export const registerStudentController = async (
       data: result.rows[0],
     });
   } catch (error) {
-    // console.error("Register error:", error);
+    console.error("Register error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

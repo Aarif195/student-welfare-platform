@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import { upload } from "../utils/multer";
 import { validateResult } from "../middlewares/validateResult";
 import {
   studentRegisterValidation,
@@ -32,10 +32,26 @@ const router = Router();
 // Auth
 router.post(
   "/register",
+   upload.single("profile_image"),
   studentRegisterValidation,
   validateResult,
   registerStudentController
 );
+
+// router.post(
+//   "/register",
+//   upload.single("profile_image"),
+//   registerStudentController
+// );
+
+// router.post(
+//   "/rooms",
+//   authenticate,
+//   authorize(["owner"]),
+//   upload.array("images", 5),
+//   createRoomController
+// );
+
 router.post(
   "/login",
   studentLoginValidation,
