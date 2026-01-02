@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
+import { sendBookingEmail } from "../../utils/mailer";
 
 // getAllStudentsController
-export const getAllStudentsController = async (req: AuthRequest, res: Response) => {
+export const getAllStudentsController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -33,7 +37,10 @@ export const getAllStudentsController = async (req: AuthRequest, res: Response) 
 };
 
 // getAllOwnersController
-export const getAllOwnersController = async (req: AuthRequest, res: Response) => {
+export const getAllOwnersController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -199,7 +206,10 @@ export const rejectHostelController = async (
 };
 
 // getAllUsersController
-export const getAllUsersController = async (req: AuthRequest, res: Response) => {
+export const getAllUsersController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -247,13 +257,19 @@ export const getAllUsersController = async (req: AuthRequest, res: Response) => 
 };
 
 // approveBookingController
-export const approveBookingController = async (req: AuthRequest, res: Response) => {
+export const approveBookingController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const { bookingId } = req.params;
 
   try {
-    // 1. Update Booking Status
+    // 1. Update Status and fetch Student Email + Room details
     const bookingUpdate = await pool.query(
-      "UPDATE Bookings SET booking_status = 'approved' WHERE id = $1 RETURNING room_id",
+      `UPDATE Bookings 
+       SET booking_status = 'approved' 
+       WHERE id = $1 
+       RETURNING room_id, (SELECT email FROM Students WHERE id = Bookings.student_id) as student_email`,
       [bookingId]
     );
 
@@ -263,16 +279,26 @@ export const approveBookingController = async (req: AuthRequest, res: Response) 
         .json({ success: false, message: "Booking not found" });
     }
 
-    const room_id = bookingUpdate.rows[0].room_id;
+    const { room_id, student_email } = bookingUpdate.rows[0];
 
     // 2. Flip Room Availability to FALSE
     await pool.query("UPDATE Rooms SET availability = FALSE WHERE id = $1", [
       room_id,
     ]);
 
+    // 3. Send Automatic Email
+    const emailSubject = "Booking Approved!";
+    const emailHtml = `
+      <h1>Congratulations!</h1>
+      <p>Your booking for Booking ID: <strong>${bookingId}</strong> has been approved.</p>
+      <p>You can now proceed with the necessary arrangements.</p>
+    `;
+
+    await sendBookingEmail(student_email, emailSubject, emailHtml);
+
     res
       .status(200)
-      .json({ success: true, message: "Booking approved and room occupied" });
+      .json({ success: true, message: "Booking approved and email sent to student" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -345,12 +371,17 @@ export const getAdminPendingBookingsController = async (
 };
 
 // rejectBookingController
-export const rejectBookingController = async (req: AuthRequest, res: Response) => {
+export const rejectBookingController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const { bookingId } = req.params;
   const { rejection_reason } = req.body;
 
   if (!rejection_reason) {
-    return res.status(400).json({ success: false, message: "Rejection reason is required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Rejection reason is required" });
   }
 
   const client = await pool.connect();
@@ -365,22 +396,25 @@ export const rejectBookingController = async (req: AuthRequest, res: Response) =
       WHERE id = $2 
       RETURNING id, room_id, booking_status, rejection_reason
     `;
-    const bookingRes = await client.query(bookingQuery, [rejection_reason, bookingId]);
+    const bookingRes = await client.query(bookingQuery, [
+      rejection_reason,
+      bookingId,
+    ]);
 
     if (bookingRes.rowCount === 0) {
       throw new Error("Booking not found");
     }
 
-    // 2. Update Payment status to completed
+    // 2. Update Payment status
     const paymentQuery = `
       UPDATE Payments 
       SET refund_status = 'completed' 
       WHERE booking_id = $1 
       RETURNING refund_status
     `;
-    const paymentRes = await client.query(paymentQuery, [bookingId]);
+    await client.query(paymentQuery, [bookingId]);
 
-    // 3. Get Student and Room details for the final response
+    // 3. Get Student and Room details
     const detailsQuery = `
       SELECT s.firstName, s.lastName, s.email, r.room_number
       FROM Students s
@@ -389,19 +423,31 @@ export const rejectBookingController = async (req: AuthRequest, res: Response) =
       WHERE b.id = $1
     `;
     const detailsRes = await client.query(detailsQuery, [bookingId]);
+    const student = detailsRes.rows[0];
 
     await client.query("COMMIT");
 
-    const finalData = {
-      ...bookingRes.rows[0],
-      ...paymentRes.rows[0],
-      ...detailsRes.rows[0]
-    };
+    // 4. Send Automatic Rejection Email
+    const emailSubject = "Booking Update: Application Rejected";
+    const emailHtml = `
+      <h1>Booking Update</h1>
+      <p>Hello ${student.firstname},</p>
+      <p>We regret to inform you that your booking for room <strong>${student.room_number}</strong> has been rejected.</p>
+      <p><strong>Reason:</strong> ${rejection_reason}</p>
+      <p><strong>Refund Info:</strong> Your payment has been successfully refunded to your account.</p>
+    `;
 
-    res.status(200).json({ success: true, data: finalData });
+    await sendBookingEmail(student.email, emailSubject, emailHtml);
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Booking rejected and notification sent" 
+    });
   } catch (error: any) {
     await client.query("ROLLBACK");
-    res.status(500).json({ success: false, message: error.message || "Server error" });
+    res
+      .status(500)
+      .json({ success: false, message: error.message || "Server error" });
   } finally {
     client.release();
   }
