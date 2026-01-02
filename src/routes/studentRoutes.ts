@@ -38,19 +38,6 @@ router.post(
   registerStudentController
 );
 
-// router.post(
-//   "/register",
-//   upload.single("profile_image"),
-//   registerStudentController
-// );
-
-// router.post(
-//   "/rooms",
-//   authenticate,
-//   authorize(["owner"]),
-//   upload.array("images", 5),
-//   createRoomController
-// );
 
 router.post(
   "/login",

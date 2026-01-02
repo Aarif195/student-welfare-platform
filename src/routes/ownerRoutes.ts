@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { upload } from "../utils/multer";
 import {
   ownerRegisterValidation,
   ownerLoginValidation,
@@ -110,10 +111,12 @@ router.post(
   "/:hostelId/rooms",
   authenticate,
   authorize(["owner"]),
+  upload.array("images", 5),
   createRoomValidation,
   validateResult,
   createRoomController
 );
+
 
 router.put(
   "/hostels/:hostelId",

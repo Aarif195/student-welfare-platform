@@ -328,6 +328,10 @@ export const createRoomController = async (req: Request, res: Response) => {
   const { room_number, capacity, price } = req.body;
   const owner_id = (req as any).user.id;
 
+// Multer puts multiple files in req.files
+  const files = req.files as Express.Multer.File[];
+  const imagePaths = files ? files.map((file) => file.path) : [];
+
   // Check valid integer
   if (isNaN(Number(hostelId))) {
     return res
@@ -357,9 +361,9 @@ export const createRoomController = async (req: Request, res: Response) => {
 
     // 2. Create the room
     const newRoom = await pool.query(
-      `INSERT INTO Rooms (hostel_id, room_number, capacity, price) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [hostelId, room_number, capacity, price]
+      `INSERT INTO Rooms (hostel_id, room_number, capacity, price, images) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [hostelId, room_number, capacity, price, imagePaths]
     );
 
     res.status(201).json({ success: true, data: newRoom.rows[0] });
