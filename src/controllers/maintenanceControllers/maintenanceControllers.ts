@@ -54,3 +54,44 @@ const userId = (req as any).user.id;
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// getMaintenanceRequests
+export const getMaintenanceRequests = async (req: AuthRequest, res: Response) => {
+  const userId = (req as any).user.id;
+  const role = (req as any).user.role;
+
+  try {
+    let query = "";
+    let params: any[] = [];
+
+    if (role === "superadmin") {
+      // Superadmin sees everything
+      query = `SELECT m.*, h.name as hostel_name, s.firstName, s.lastName 
+           FROM maintenance_requests m
+           JOIN Hostels h ON m.hostel_id = h.id
+           JOIN Students s ON m.student_id = s.id
+           ORDER BY m.created_at DESC`;
+    } else {
+      // Owner sees only their hostel's requests
+      query = `SELECT m.*, h.name as hostel_name, s.firstName, s.lastName 
+           FROM maintenance_requests m
+           JOIN Hostels h ON m.hostel_id = h.id
+           JOIN Students s ON m.student_id = s.id
+           WHERE h.user_id = $1
+           ORDER BY m.created_at DESC`;
+      params = [Number(userId)];
+    }
+
+    const requests = await pool.query(query, params);
+
+    return res.status(200).json({
+      success: true,
+      count: requests.rowCount,
+      data: requests.rows,
+    });
+  } catch (error) {
+    console.error("Fetch maintenance error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
