@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { createMaintenanceRequest, getMaintenanceRequests , updateMaintenanceStatus} from "../controllers/maintenanceControllers/maintenanceControllers";
+import { createMaintenanceRequest, getMaintenanceRequests , updateMaintenanceStatus, getStudentMaintenanceRequests} from "../controllers/maintenanceControllers/maintenanceControllers";
 import { authenticate } from "../middlewares/authMiddleware";
 import { validateMaintenance, updateValidateMaintenance } from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
@@ -25,6 +25,13 @@ router.get(
   authenticate,
   authorize(["owner", "superadmin"]),
   getMaintenanceRequests
+);
+
+router.get(
+  "/my-requests",
+  authenticate,
+  authorize(["student"]),
+  getStudentMaintenanceRequests
 );
 
 router.patch(

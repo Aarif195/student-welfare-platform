@@ -142,3 +142,36 @@ export const updateMaintenanceStatus = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// getStudentMaintenanceRequests
+// Students to view the history and status of their own maintenance complaints
+export const getStudentMaintenanceRequests = async (req: AuthRequest, res: Response) => {
+  const studentId = (req as any).user.id;
+  const { status } = req.query;
+
+  try {
+    let query = `SELECT m.*, h.name as hostel_name 
+                 FROM maintenance_requests m
+                 JOIN Hostels h ON m.hostel_id = h.id
+                 WHERE m.student_id = $1`;
+    let params: any[] = [Number(studentId)];
+
+    if (status) {
+      params.push(status);
+      query += ` AND m.status = $2`;
+    }
+
+    query += ` ORDER BY m.created_at DESC`;
+
+    const requests = await pool.query(query, params);
+
+    return res.status(200).json({
+      success: true,
+      count: requests.rowCount,
+      data: requests.rows,
+    });
+  } catch (error) {
+    console.error("Student fetch maintenance error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
