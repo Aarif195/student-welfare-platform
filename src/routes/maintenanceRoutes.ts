@@ -1,12 +1,19 @@
 import { Router } from "express";
 
-import { createMaintenanceRequest, getMaintenanceRequests , updateMaintenanceStatus, getStudentMaintenanceRequests} from "../controllers/maintenanceControllers/maintenanceControllers";
+import {
+  createMaintenanceRequest,
+  getMaintenanceRequests,
+  updateMaintenanceStatus,
+  getStudentMaintenanceRequests,getStudentNotifications
+} from "../controllers/maintenanceControllers/maintenanceControllers";
 import { authenticate } from "../middlewares/authMiddleware";
-import { validateMaintenance, updateValidateMaintenance } from "../middlewares/validation";
+import {
+  validateMaintenance,
+  updateValidateMaintenance,
+} from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
 import { authorize } from "../middlewares/roleMiddleware";
 import { upload } from "../utils/multer";
-
 
 const router = Router();
 
@@ -14,7 +21,7 @@ router.post(
   "/create",
   authenticate,
   authorize(["student"]),
-  upload.single("image"), 
+  upload.single("image"),
   validateMaintenance,
   validateResult,
   createMaintenanceRequest
@@ -34,6 +41,13 @@ router.get(
   getStudentMaintenanceRequests
 );
 
+router.get(
+  "/notifications/my-requests",
+  authenticate,
+  authorize(["student"]),
+  getStudentNotifications
+);
+
 router.patch(
   "/update/:id",
   authenticate,
@@ -44,4 +58,3 @@ router.patch(
 );
 
 export default router;
-

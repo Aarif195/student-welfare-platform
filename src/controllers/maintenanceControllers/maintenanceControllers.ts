@@ -62,14 +62,15 @@ export const getMaintenanceRequests = async (
 ) => {
   const userId = (req as any).user.id;
   const role = (req as any).user.role;
-const { status } = req.query;
+  const { status } = req.query;
 
   try {
     let query = "";
     let params: any[] = [];
 
-// query parts
-    let whereClause = role === "superadmin" ? "WHERE 1=1" : "WHERE h.owner_id = $1";
+    // query parts
+    let whereClause =
+      role === "superadmin" ? "WHERE 1=1" : "WHERE h.owner_id = $1";
     if (role !== "superadmin") params.push(Number(userId));
 
     if (status) {
@@ -83,7 +84,6 @@ const { status } = req.query;
              JOIN Students s ON m.student_id = s.id
              ${whereClause}
              ORDER BY m.created_at DESC`;
-
 
     const requests = await pool.query(query, params);
 
@@ -103,7 +103,7 @@ export const updateMaintenanceStatus = async (
   req: AuthRequest,
   res: Response
 ) => {
-  const { id } = req.params; // The Maintenance Request ID
+  const { id } = req.params;
   const { status, owner_notes, assigned_to } = req.body;
   const userId = (req as any).user.id;
   const role = (req as any).user.role;
@@ -132,9 +132,23 @@ export const updateMaintenanceStatus = async (
       [status, owner_notes, assigned_to, id]
     );
 
+    // Get student_id and status from the updated row
+    const { student_id, id: request_id, status: newStatus } = updated.rows[0];
+
+    // Create notification for the student
+    await pool.query(
+      `INSERT INTO Notifications (student_id, request_id, title, message)
+       VALUES ($1, $2, $3, $4)`,
+      [
+        student_id, request_id,
+        "Maintenance Update",
+        `Your maintenance request status has been updated to: ${newStatus}.`,
+      ]
+    );
+
     return res.status(200).json({
       success: true,
-      message: "Maintenance status updated",
+      message: "Maintenance status updated and student notified",
       data: updated.rows[0],
     });
   } catch (error) {
@@ -145,7 +159,10 @@ export const updateMaintenanceStatus = async (
 
 // getStudentMaintenanceRequests
 // Students to view the history and status of their own maintenance complaints
-export const getStudentMaintenanceRequests = async (req: AuthRequest, res: Response) => {
+export const getStudentMaintenanceRequests = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const studentId = (req as any).user.id;
   const { status } = req.query;
 
@@ -172,6 +189,39 @@ export const getStudentMaintenanceRequests = async (req: AuthRequest, res: Respo
     });
   } catch (error) {
     console.error("Student fetch maintenance error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// getStudentNotifications
+// Notification for the students to get update of their complains
+export const getStudentNotifications = async (req: AuthRequest, res: Response) => {
+  const studentId = (req as any).user.id;
+
+  try {
+    const notifications = await pool.query(
+      `SELECT 
+        n.id AS notification_id,
+        n.title,
+        n.message,
+        n.is_read,
+        n.created_at AS notified_at,
+        m.*, 
+      h.name AS hostel_name
+     FROM Notifications n
+      JOIN maintenance_requests m ON n.request_id = m.id
+      JOIN Hostels h ON m.hostel_id = h.id
+      WHERE n.student_id = $1 
+      ORDER BY n.created_at DESC`,
+      [Number(studentId)]
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: notifications.rows,
+    });
+  } catch (error) {
+    console.error("Fetch combined notifications error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
