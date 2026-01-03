@@ -4,7 +4,9 @@ import {
   createMaintenanceRequest,
   getMaintenanceRequests,
   updateMaintenanceStatus,
-  getStudentMaintenanceRequests,getStudentNotifications
+  getStudentMaintenanceRequests,
+  getStudentNotifications,
+  markNotificationAsRead,
 } from "../controllers/maintenanceControllers/maintenanceControllers";
 import { authenticate } from "../middlewares/authMiddleware";
 import {
@@ -55,6 +57,13 @@ router.patch(
   updateValidateMaintenance,
   validateResult,
   updateMaintenanceStatus
+);
+
+router.patch(
+  "/notifications/:id/read",
+  authenticate,
+  authorize(["student"]),
+  markNotificationAsRead
 );
 
 export default router;

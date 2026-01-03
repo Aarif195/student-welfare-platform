@@ -225,3 +225,32 @@ export const getStudentNotifications = async (req: AuthRequest, res: Response) =
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// markNotificationAsRead
+export const markNotificationAsRead = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const studentId = (req as any).user.id;
+
+  try {
+    const result = await pool.query(
+      `UPDATE Notifications 
+       SET is_read = true 
+       WHERE id = $1 AND student_id = $2 
+       RETURNING id, is_read`,
+      [id, Number(studentId)]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification marked as read",
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Mark notification error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
