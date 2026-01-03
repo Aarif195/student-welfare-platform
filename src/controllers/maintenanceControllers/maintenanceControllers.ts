@@ -78,7 +78,7 @@ export const getMaintenanceRequests = async (req: AuthRequest, res: Response) =>
            FROM maintenance_requests m
            JOIN Hostels h ON m.hostel_id = h.id
            JOIN Students s ON m.student_id = s.id
-           WHERE h.user_id = $1
+           WHERE h.owner_id = $1
            ORDER BY m.created_at DESC`;
       params = [Number(userId)];
     }
