@@ -8,7 +8,7 @@ export const createMaintenanceRequest = async (
   res: Response
 ) => {
   const { issue_type, description } = req.body;
-const userId = (req as any).user.id;
+  const userId = (req as any).user.id;
 
   // The image URL from upload middleware (e.g., Cloudinary)
   const image_url = req.file ? req.file.path : null;
@@ -55,9 +55,11 @@ const userId = (req as any).user.id;
   }
 };
 
-
 // getMaintenanceRequests
-export const getMaintenanceRequests = async (req: AuthRequest, res: Response) => {
+export const getMaintenanceRequests = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const userId = (req as any).user.id;
   const role = (req as any).user.role;
 
@@ -92,6 +94,51 @@ export const getMaintenanceRequests = async (req: AuthRequest, res: Response) =>
     });
   } catch (error) {
     console.error("Fetch maintenance error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// updateMaintenanceStatus
+export const updateMaintenanceStatus = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { id } = req.params; // The Maintenance Request ID
+  const { status, owner_notes, assigned_to } = req.body;
+  const userId = (req as any).user.id;
+  const role = (req as any).user.role;
+
+  try {
+    //  If Superadmin, skip ownership check. If Owner, verify they own the hostel.
+    if (role !== "superadmin") {
+      const checkOwnership = await pool.query(
+        `SELECT m.id FROM maintenance_requests m
+     JOIN Hostels h ON m.hostel_id = h.id
+     WHERE m.id = $1 AND h.owner_id = $2`,
+        [id, Number(userId)]
+      );
+
+      if (checkOwnership.rowCount === 0) {
+        return res
+          .status(403)
+          .json({ message: "Unauthorized to update this request" });
+      }
+    }
+
+    const updated = await pool.query(
+      `UPDATE maintenance_requests 
+       SET status = $1, owner_notes = $2, assigned_to = $3, updated_at = NOW()
+       WHERE id = $4 RETURNING *`,
+      [status, owner_notes, assigned_to, id]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Maintenance status updated",
+      data: updated.rows[0],
+    });
+  } catch (error) {
+    console.error("Update maintenance error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

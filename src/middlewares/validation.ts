@@ -162,4 +162,9 @@ export const validateMaintenance = [
  
 ];
 
-
+// updateValidateMaintenance
+export const updateValidateMaintenance =  [
+    body("status").isIn(["pending", "in-progress", "resolved"]).withMessage("Invalid status"),
+    body("owner_notes").optional().isString(),
+    body("assigned_to").optional().isString()
+  ]

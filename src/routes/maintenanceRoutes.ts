@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { createMaintenanceRequest, getMaintenanceRequests } from "../controllers/maintenanceControllers/maintenanceControllers";
+import { createMaintenanceRequest, getMaintenanceRequests , updateMaintenanceStatus} from "../controllers/maintenanceControllers/maintenanceControllers";
 import { authenticate } from "../middlewares/authMiddleware";
-import { validateMaintenance } from "../middlewares/validation";
+import { validateMaintenance, updateValidateMaintenance } from "../middlewares/validation";
 import { validateResult } from "../middlewares/validateResult";
 import { authorize } from "../middlewares/roleMiddleware";
 import { upload } from "../utils/multer";
@@ -27,4 +27,15 @@ router.get(
   getMaintenanceRequests
 );
 
+router.patch(
+  "/update/:id",
+  authenticate,
+  authorize(["owner", "superadmin"]),
+  updateValidateMaintenance,
+  validateResult,
+  updateMaintenanceStatus
+);
+
 export default router;
+
+// feat: add maintenance status update logic for owner and superadmin
