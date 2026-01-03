@@ -8,9 +8,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendBookingEmail = async (to: string, subject: string, html: string) => {
+export const sendBookingEmail = async (to: string, subject: string, html: string, senderName: string = "Hostel Management") => {
   const mailOptions = {
-    from: `"Hostel Management" <${process.env.EMAIL_USER}>`,
+    from: `"${senderName}" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,

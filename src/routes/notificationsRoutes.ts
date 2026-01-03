@@ -39,7 +39,7 @@ router.delete(
   "/:notificationId",
   authenticate,
   authorize(["superadmin", "owner"]),
-  paramIdValidation("alertId"),
+  paramIdValidation("notificationId"),
   validateResult,
   deleteNotificationController
 );

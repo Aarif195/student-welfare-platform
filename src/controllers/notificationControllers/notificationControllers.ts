@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
+import { sendBookingEmail } from "../../utils/mailer";
 
 // createAlertController
 export const createNotificationController = async (
@@ -40,7 +41,7 @@ export const createNotificationController = async (
       if (hostelCheck.rowCount === 0) {
         return res.status(403).json({
           message:
-            "Cannot create alert for this hostel. It must be approved and owned by you.",
+            "Cannot create notification for this hostel. It must be approved and owned by you.",
         });
       }
 
@@ -49,7 +50,7 @@ export const createNotificationController = async (
       if (role === "owner" && hostelOwnerId !== userId) {
         return res.status(403).json({
           message:
-            "Owners can only create alerts for their own approved hostel.",
+            "Owners can only create notifications for their own approved hostel.",
         });
       }
 
@@ -58,7 +59,7 @@ export const createNotificationController = async (
       if (role !== "superadmin") {
         return res
           .status(403)
-          .json({ message: "Only superadmin can create global alerts" });
+          .json({ message: "Only superadmin can create global notifications" });
       }
       hostel_id = null;
     }
@@ -71,7 +72,53 @@ export const createNotificationController = async (
       [title, message, type, hostel_id, userId, role]
     );
 
-    return res.status(201).json({ message: "Alert created", alert: result.rows[0] });
+    // --- NEW EMAIL LOGIC ---
+    let recipientEmails: string[] = [];
+    let senderName = "Campus Admin"; // Default
+
+    if (type === "global") {
+      const students = await pool.query("SELECT email FROM Students");
+      recipientEmails = students.rows.map((r) => r.email);
+    } else if (type === "hostel") {
+      // 1. Get Student Emails by joining Bookings -> Rooms
+      const students = await pool.query(
+        `SELECT s.email FROM Students s 
+         JOIN Bookings b ON s.id = b.student_id 
+         JOIN Rooms r ON b.room_id = r.id 
+         WHERE r.hostel_id = $1 AND b.booking_status = 'approved'`,
+        [hostel_id]
+      );
+      recipientEmails = students.rows.map((r) => r.email);
+
+      // 2. Determine Sender Name
+      if (role === "owner") {
+        const hostelData = await pool.query(
+          `SELECT name FROM Hostels WHERE id = $1`,
+          [hostel_id]
+        );
+        senderName = hostelData.rows[0]?.name || "Hostel Management";
+      }
+    }
+
+    // 3. Email Template & Send
+    const emailHtml = `
+      <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h2 style="color: #333;">${title}</h2>
+        <p style="font-size: 16px; line-height: 1.5;">${message}</p>
+        <hr />
+        <small style="color: #888;">Sent by: ${senderName}</small>
+      </div>
+    `;
+
+    // Map through emails to trigger sends
+    recipientEmails.forEach((email) => {
+      sendBookingEmail(email, title, emailHtml, senderName);
+    });
+
+    return res.status(201).json({
+      message: "Notification successfully published and sent to students",
+      alert: result.rows[0],
+    });
   } catch (err) {
     console.error("Create alert error:", err);
     return res.status(500).json({ message: "Server error" });
@@ -91,7 +138,8 @@ export const deleteNotificationController = async (
     const userId = req.user.id;
     const role = req.user.role;
 
-    if (!notificationId) return res.status(400).json({ message: "notification ID is required" });
+    if (!notificationId)
+      return res.status(400).json({ message: "notification ID is required" });
 
     // Fetch the notification to check ownership/role
     const alertCheck = await pool.query(
@@ -107,11 +155,15 @@ export const deleteNotificationController = async (
 
     // Only superadmin or creator can delete
     if (role !== "superadmin" && alert.created_by !== userId) {
-      return res.status(403).json({ message: "You are not allowed to delete this notification" });
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to delete this notification" });
     }
 
     // Delete the notification
-    await pool.query("DELETE FROM alerts WHERE id = $1", [Number(notificationId)]);
+    await pool.query("DELETE FROM alerts WHERE id = $1", [
+      Number(notificationId),
+    ]);
 
     return res.status(204).send();
   } catch (err) {
@@ -172,7 +224,7 @@ export const getHostelNotificationsController = async (
   try {
     const { hostelId } = req.params;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 10, 10); 
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 10);
     const offset = (page - 1) * limit;
 
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
@@ -196,7 +248,7 @@ export const getHostelNotificationsController = async (
 
     const hostel = hostelCheck.rows[0];
 
-    // Only allow access if hostel is approved 
+    // Only allow access if hostel is approved
     if (hostel.status !== "approved") {
       return res.status(403).json({
         message: "Cannot view alerts for unapproved hostel",
@@ -238,8 +290,3 @@ export const getHostelNotificationsController = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
-
-

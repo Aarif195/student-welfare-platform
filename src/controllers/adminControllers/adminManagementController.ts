@@ -289,9 +289,11 @@ export const approveBookingController = async (
     // 3. Send Automatic Email
     const emailSubject = "Booking Approved!";
     const emailHtml = `
-      <h1>Congratulations!</h1>
-      <p>Your booking for Booking ID: <strong>${bookingId}</strong> has been approved.</p>
-      <p>You can now proceed with the necessary arrangements.</p>
+    <div style="font-family: Arial, sans-serif; padding: 20px;    border: 1px solid #eee; border-radius: 10px; background-color: #f9f9f9;">
+        <h1>Congratulations!</h1>
+        <p> Your booking for Booking ID: <strong>${bookingId}</strong> has been approved.</p>
+       <p>You can now proceed with the necessary arrangements.</p>
+     </div>
     `;
 
     await sendBookingEmail(student_email, emailSubject, emailHtml);
