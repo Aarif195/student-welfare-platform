@@ -21,6 +21,15 @@ This project aims to improve student welfare and campus life by solving real pro
 - View global and hostel notifications  
 - Delete notifications (superadmin or notification owner)
 
+### Core Module Three (Maintenance Management System)
+- Request Creation: Students can submit detailed maintenance complaints linked to their hostel.  
+- Status Tracking: Real-time updates (Pending, In-Progress, Resolved, Cancelled).  
+- Owner Management: Hostel owners can assign staff, add technical notes, and update progress. 
+- Automated Notifications: Instant in-app alerts triggered for students upon status changes.  
+- Integrated Data View: Notifications linked directly to request details via SQL Joins for a seamless user experience.
+- Read Receipts: Logic to track and update notification read status.
+
+
 ---
 
 ## Database Tables
