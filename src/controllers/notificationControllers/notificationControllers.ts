@@ -153,18 +153,11 @@ export const deleteNotificationController = async (
 
     const alert = alertCheck.rows[0];
 
-    // Only superadmin or creator can delete
-    // if (role !== "superadmin" && alert.created_by !== userId) {
-    //   return res
-    //     .status(403)
-    //     .json({ message: "You are not allowed to delete this notification" });
-    // }
-
     // STRICT CHECK: User must be the one who created it.
-    // This prevents Superadmins from deleting Owner alerts and vice versa.
     if (alert.created_by !== userId) {
-      return res.status(403).json({ 
-        message: "Access denied: You can only delete notifications you created." 
+      return res.status(403).json({
+        message:
+          "Access denied: You can only delete notifications you created.",
       });
     }
 
@@ -259,14 +252,14 @@ export const getHostelNotificationsController = async (
     // Only allow access if hostel is approved
     if (hostel.status !== "approved") {
       return res.status(403).json({
-        message: "Cannot view alerts for unapproved hostel",
+        message: "Cannot view notifications for unapproved hostel",
       });
     }
 
     // Owners can only view alerts for their own approved hostel
     if (role === "owner" && hostel.owner_id !== userId) {
       return res.status(403).json({
-        message: "Owners can only view alerts for their own approved hostel",
+        message: "Owners can only view notifications for their own approved hostel",
       });
     }
 
