@@ -154,10 +154,18 @@ export const deleteNotificationController = async (
     const alert = alertCheck.rows[0];
 
     // Only superadmin or creator can delete
-    if (role !== "superadmin" && alert.created_by !== userId) {
-      return res
-        .status(403)
-        .json({ message: "You are not allowed to delete this notification" });
+    // if (role !== "superadmin" && alert.created_by !== userId) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "You are not allowed to delete this notification" });
+    // }
+
+    // STRICT CHECK: User must be the one who created it.
+    // This prevents Superadmins from deleting Owner alerts and vice versa.
+    if (alert.created_by !== userId) {
+      return res.status(403).json({ 
+        message: "Access denied: You can only delete notifications you created." 
+      });
     }
 
     // Delete the notification
