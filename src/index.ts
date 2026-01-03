@@ -6,6 +6,7 @@ import hostelRoutes from "./routes/hostelRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import publicRoutes from "./routes/publicRoutes";
 import notificationsRoutes from "./routes/notificationsRoutes";
+import maintenanceRoutes from "./routes/maintenanceRoutes";
 
 
 import { connectTODB } from "./config/db";
@@ -29,6 +30,8 @@ app.use("/hostels", hostelRoutes);
 app.use("/admin", adminRoutes);
 app.use("/public", publicRoutes);
 app.use("/notifications", notificationsRoutes);
+app.use("/maintenance", maintenanceRoutes);
+
 
 
 

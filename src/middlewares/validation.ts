@@ -108,6 +108,7 @@ export const reviewValidation = [
     .withMessage("Comment max 500 characters"),
 ];
 
+// replyReviewValidation
 export const replyReviewValidation = [
   body("reply").notEmpty().withMessage("Reply text is required"),
 ];
@@ -148,8 +149,17 @@ export const updateProfileValidation = [
     .trim()
     .notEmpty()
     .withMessage("Last name cannot be empty"),
-  body("phoneNumber")
+  body("phone")
     .optional()
-    .isMobilePhone("any")
-    .withMessage("Invalid phone number"),
+  .matches(/^\+?\d{7,15}$/)
+  .withMessage("Phone must be a valid number with or without country code"),
 ];
+
+// validateMaintenance
+export const validateMaintenance = [
+  body("issue_type").notEmpty().withMessage("Issue type is required"),
+  body("description").isLength({ min: 10 }).withMessage("Description must be at least 10 characters"),
+ 
+];
+
+

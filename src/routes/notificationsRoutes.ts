@@ -44,7 +44,7 @@ router.delete(
   deleteNotificationController
 );
 
-// READ – Global alerts
+// READ – Global notifications
 router.get(
   "/admin/global-notifications",
   authenticate,
@@ -52,7 +52,7 @@ router.get(
   getGlobalNotificationsController
 );
 
-// READ GET all alerts for a specific hostel
+// READ GET all notifications for a specific hostel
 router.get(
   "/hostel/:hostelId",
   authenticate,
