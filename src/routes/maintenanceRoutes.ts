@@ -38,4 +38,3 @@ router.patch(
 
 export default router;
 
-// feat: add maintenance status update logic for owner and superadmin

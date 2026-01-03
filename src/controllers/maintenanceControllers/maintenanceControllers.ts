@@ -2,7 +2,7 @@ import { Response } from "express";
 import { pool } from "../../config/db";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 
-// createMaintenanceRequest
+// createMaintenanceRequest by students
 export const createMaintenanceRequest = async (
   req: AuthRequest,
   res: Response
@@ -62,28 +62,28 @@ export const getMaintenanceRequests = async (
 ) => {
   const userId = (req as any).user.id;
   const role = (req as any).user.role;
+const { status } = req.query;
 
   try {
     let query = "";
     let params: any[] = [];
 
-    if (role === "superadmin") {
-      // Superadmin sees everything
-      query = `SELECT m.*, h.name as hostel_name, s.firstName, s.lastName 
-           FROM maintenance_requests m
-           JOIN Hostels h ON m.hostel_id = h.id
-           JOIN Students s ON m.student_id = s.id
-           ORDER BY m.created_at DESC`;
-    } else {
-      // Owner sees only their hostel's requests
-      query = `SELECT m.*, h.name as hostel_name, s.firstName, s.lastName 
-           FROM maintenance_requests m
-           JOIN Hostels h ON m.hostel_id = h.id
-           JOIN Students s ON m.student_id = s.id
-           WHERE h.owner_id = $1
-           ORDER BY m.created_at DESC`;
-      params = [Number(userId)];
+// query parts
+    let whereClause = role === "superadmin" ? "WHERE 1=1" : "WHERE h.owner_id = $1";
+    if (role !== "superadmin") params.push(Number(userId));
+
+    if (status) {
+      params.push(status);
+      whereClause += ` AND m.status = $${params.length}`;
     }
+
+    query = `SELECT m.*, h.name as hostel_name, s.firstName, s.lastName 
+             FROM maintenance_requests m
+             JOIN Hostels h ON m.hostel_id = h.id
+             JOIN Students s ON m.student_id = s.id
+             ${whereClause}
+             ORDER BY m.created_at DESC`;
+
 
     const requests = await pool.query(query, params);
 
