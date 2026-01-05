@@ -254,3 +254,25 @@ export const markNotificationAsRead = async (req: AuthRequest, res: Response) =>
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// markAllNotificationsAsRead
+export const markAllNotificationsAsRead = async (req: AuthRequest, res: Response) => {
+  const studentId = (req as any).user.id;
+
+  try {
+    await pool.query(
+      `UPDATE Notifications 
+       SET is_read = true 
+       WHERE student_id = $1 AND is_read = false`,
+      [Number(studentId)]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "All notifications marked as read"
+    });
+  } catch (error) {
+    console.error("Bulk mark read error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

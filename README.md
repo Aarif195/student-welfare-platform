@@ -5,7 +5,7 @@ This project aims to improve student welfare and campus life by solving real pro
 
 ## Core Module Features
 
-### Core Module One
+### Core Module One (Hostel Finder & Booking System)
 - Student registration and login  
 - Hostel owner registration and login  
 - Hostel and room listing management  

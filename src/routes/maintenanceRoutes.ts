@@ -6,7 +6,7 @@ import {
   updateMaintenanceStatus,
   getStudentMaintenanceRequests,
   getStudentNotifications,
-  markNotificationAsRead,
+  markNotificationAsRead,markAllNotificationsAsRead
 } from "../controllers/maintenanceControllers/maintenanceControllers";
 import { authenticate } from "../middlewares/authMiddleware";
 import {
@@ -64,6 +64,13 @@ router.patch(
   authenticate,
   authorize(["student"]),
   markNotificationAsRead
+);
+
+router.patch(
+  "/notifications/read-all",
+  authenticate,
+  authorize(["student"]),
+  markAllNotificationsAsRead
 );
 
 export default router;
