@@ -13,6 +13,8 @@ This project aims to improve student welfare and campus life by solving real pro
 - Admin approval workflow  
 - Reviews system  
 - Public access to search and view hostels  
+- Guest Logging System: Allows students with approved bookings to register visitors by calculating duration-based stay limits. 
+
 
 ### Core Module Two (Campus/Hostel Notifications)
 - Global notifications created by superadmin  
@@ -20,6 +22,7 @@ This project aims to improve student welfare and campus life by solving real pro
 - Role-based access control (superadmin, owner, student)  
 - View global and hostel notifications  
 - Delete notifications (superadmin or notification owner)
+- Owner Guest Monitoring: Real-time for owners to filter between Active and History guest records based on automated time-expiry logic.
 
 ### Core Module Three (Maintenance Management System)
 - Request Creation: Students can submit detailed maintenance complaints linked to their hostel.  
