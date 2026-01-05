@@ -225,3 +225,41 @@ export const studySpaceValidation = [
     .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
     .withMessage("Invalid closing time (HH:MM)"),
 ];
+
+export const validateAvailableSlots = (
+  value: number,
+  req: Request
+): boolean => {
+  const total = req.body.total_capacity;
+
+  if (total !== undefined && value > total) {
+    throw new Error("Available slots cannot exceed total capacity");
+  }
+
+  return true;
+};
+
+export const studySpaceUpdateValidation = [
+  body("total_capacity")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Total capacity must be at least 1"),
+
+  body("available_slots")
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage("Available slots cannot be negative")
+    .custom((value: number, { req }: { req: Request }) =>
+      validateAvailableSlots(value, req)
+    ),
+
+  body("status").optional().isIn(["open", "closed", "full"]),
+
+  body("opening_time")
+    .optional()
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/),
+
+  body("closing_time")
+    .optional()
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/),
+];
