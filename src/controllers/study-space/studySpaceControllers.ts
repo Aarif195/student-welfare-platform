@@ -65,6 +65,22 @@ export const updateStudySpaceController = async (req: AuthRequest, res: Response
 
 export const deleteStudySpaceController = async () => {};
 
-export const getAllStudySpacesController = async () => {};
+export const getAllStudySpacesController = async (req: AuthRequest, res: Response) => {
+  try {
+    const spaces = await pool.query(
+      `SELECT id, name, location, total_capacity, available_slots, status, opening_time, closing_time 
+       FROM study_spaces 
+       ORDER BY created_at DESC`
+    );
+
+    res.status(200).json({
+      success: true,
+      count: spaces.rowCount,
+      data: spaces.rows,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 export const getSingleStudySpaceController = async () => {};

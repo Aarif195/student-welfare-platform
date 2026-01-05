@@ -198,6 +198,7 @@ export const validateAvailableSeats = (value: number, req: Request) => {
   return true;
 };
 
+// studySpaceValidation
 export const studySpaceValidation = [
   body("name").notEmpty().withMessage("Study space name is required"),
 
@@ -239,6 +240,7 @@ export const validateAvailableSlots = (
   return true;
 };
 
+// studySpaceUpdateValidation
 export const studySpaceUpdateValidation = [
   body("total_capacity")
     .optional()

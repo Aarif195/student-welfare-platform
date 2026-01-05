@@ -4,7 +4,7 @@ import { authorize } from "../middlewares/roleMiddleware";
 import { validateResult } from "../middlewares/validateResult";
 import {
   paramIdValidation,
-  studySpaceValidation,
+  studySpaceValidation, studySpaceUpdateValidation
 } from "../middlewares/validation";
 
 import {
@@ -30,7 +30,7 @@ router.patch(
   "/:id",
   authenticate,
   authorize(["superadmin"]),
-  
+  studySpaceUpdateValidation,
   updateStudySpaceController
 );
 
@@ -47,8 +47,7 @@ router.get(
   "/",
   authenticate,
   authorize(["student", "owner", "superadmin"]),
-  paramIdValidation("id"),
-  validateResult,
+  
   getAllStudySpacesController
 );
 
