@@ -39,3 +39,49 @@ export const registerGuest = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// getOwnerGuestLogs
+export const getOwnerGuestLogs = async (req: AuthRequest, res: Response) => {
+  const ownerId = (req as any).user.id;
+  const { status } = req.query; // 'active' or 'history'
+
+  try {
+    //  Active is when current time is BEFORE expiry. History is when it's AFTER.
+    const timeCondition = status === 'history' 
+      ? '(gl.check_in_at + gl.expected_duration) <= CURRENT_TIMESTAMP' 
+      : '(gl.check_in_at + gl.expected_duration) > CURRENT_TIMESTAMP';
+
+    const logs = await pool.query(
+  `SELECT 
+    gl.id,
+    gl.guest_name,
+    gl.guest_phone,
+    gl.visit_purpose,
+    gl.check_in_at,
+    gl.expected_duration,
+    (gl.check_in_at + gl.expected_duration) AS expiry_time,
+    s.firstName AS host_firstName,
+    s.lastName AS host_lastName,
+    rm.room_number,
+    h.name AS hostel_name
+   FROM guest_logs gl
+   JOIN Students s ON gl.student_id = s.id
+
+   JOIN Rooms rm ON rm.id = (
+      SELECT b.room_id 
+      FROM Bookings b 
+      WHERE b.student_id = s.id AND b.booking_status = 'approved' 
+      LIMIT 1
+   )
+   JOIN Hostels h ON gl.hostel_id = h.id
+   WHERE h.owner_id = $1 AND ${timeCondition}
+   ORDER BY gl.check_in_at DESC`,
+  [ownerId]
+);
+
+    return res.status(200).json({ success: true, data: logs.rows });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};

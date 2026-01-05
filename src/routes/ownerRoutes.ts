@@ -10,7 +10,8 @@ import { validateResult } from "../middlewares/validateResult";
 import {
   paramIdValidation,
   createRoomValidation,
-  createHostelValidation, updateProfileValidation
+  createHostelValidation,
+  updateProfileValidation,
 } from "../middlewares/validation";
 
 import {
@@ -21,14 +22,21 @@ import {
   getMyHostelsController,
   getSingleHostelController,
   createHostelController,
-  updateHostelController, updateRoomController,
+  updateHostelController,
+  updateRoomController,
   deleteHostelController,
-  createRoomController,getRoomsByHostelController,deleteRoomController,getSingleRoomController,getOwnerBookingsController
+  createRoomController,
+  getRoomsByHostelController,
+  deleteRoomController,
+  getSingleRoomController,
+  getOwnerBookingsController,
 } from "../controllers/ownerControllers/ownerHostelController";
 import {
   getOwnerProfileController,
   updateOwnerProfileController,
 } from "../controllers/ownerControllers/ownerProfileController";
+
+import { getOwnerGuestLogs } from "../controllers/studentController/studentRegisterGuest";
 
 const router = Router();
 
@@ -117,7 +125,6 @@ router.post(
   createRoomController
 );
 
-
 router.put(
   "/hostels/:hostelId",
   authenticate,
@@ -142,7 +149,7 @@ router.delete(
   "/hostels/:hostelId",
   authenticate,
   authorize(["owner"]),
-  paramIdValidation("hostelId"), 
+  paramIdValidation("hostelId"),
   validateResult,
   deleteHostelController
 );
@@ -165,5 +172,11 @@ router.get(
   getOwnerBookingsController
 );
 
+router.get(
+  "/guest-logs",
+  authenticate,
+  authorize(["owner"]),
+  getOwnerGuestLogs
+);
 
 export default router;

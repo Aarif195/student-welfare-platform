@@ -7,7 +7,7 @@ import {
   paramIdValidation,
   bookingValidation,
   updateProfileValidation,
-  guestLogValidation,
+  guestLogValidation
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
@@ -90,6 +90,7 @@ router.get(
   authorize(["student"]),
   getAvailableRoomsController
 );
+
 
 // Bookings
 router.get(
