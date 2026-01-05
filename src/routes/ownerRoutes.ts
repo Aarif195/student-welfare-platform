@@ -1,12 +1,15 @@
 import { Router } from "express";
 import { upload } from "../utils/multer";
+
 import {
   ownerRegisterValidation,
   ownerLoginValidation,
 } from "../middlewares/validation";
+
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
 import { validateResult } from "../middlewares/validateResult";
+
 import {
   paramIdValidation,
   createRoomValidation,
@@ -18,6 +21,7 @@ import {
   ownerRegisterController,
   ownerLoginController,
 } from "../controllers/ownerControllers/ownerAuthController";
+
 import {
   getMyHostelsController,
   getSingleHostelController,
@@ -31,6 +35,7 @@ import {
   getSingleRoomController,
   getOwnerBookingsController,
 } from "../controllers/ownerControllers/ownerHostelController";
+
 import {
   getOwnerProfileController,
   updateOwnerProfileController,

@@ -118,12 +118,14 @@ export const paramIdValidation = (paramName: string) => [
   param(paramName).isInt().withMessage(`${paramName} must be an integer`),
 ];
 
+// adminLoginValidation
 export const adminLoginValidation = [
   body("email").isEmail().withMessage("Valid admin email is required"),
   body("password").notEmpty().withMessage("Password is required"),
 ];
 
 // creating validation
+// createHostelValidation
 export const createHostelValidation = [
   body("name").notEmpty().trim().withMessage("Hostel name is required"),
   body("location").notEmpty().withMessage("Address is required"),
@@ -132,12 +134,14 @@ export const createHostelValidation = [
     .withMessage("Description must be at least 10 characters"),
 ];
 
+// createRoomValidation
 export const createRoomValidation = [
   body("room_number").notEmpty().withMessage("Room number is required"),
   body("capacity").isNumeric().withMessage("Capacity must be a number"),
   body("price").isNumeric().withMessage("Price must be a number"),
 ];
 
+// updateProfileValidation
 export const updateProfileValidation = [
   body("firstName")
     .optional()
@@ -151,28 +155,73 @@ export const updateProfileValidation = [
     .withMessage("Last name cannot be empty"),
   body("phone")
     .optional()
-  .matches(/^\+?\d{7,15}$/)
-  .withMessage("Phone must be a valid number with or without country code"),
+    .matches(/^\+?\d{7,15}$/)
+    .withMessage("Phone must be a valid number with or without country code"),
 ];
 
 // validateMaintenance
 export const validateMaintenance = [
   body("issue_type").notEmpty().withMessage("Issue type is required"),
-  body("description").isLength({ min: 10 }).withMessage("Description must be at least 10 characters"),
- 
+  body("description")
+    .isLength({ min: 10 })
+    .withMessage("Description must be at least 10 characters"),
 ];
 
 // updateValidateMaintenance
-export const updateValidateMaintenance =  [
-    body("status").isIn(["pending", "in-progress", "resolved"]).withMessage("Invalid status"),
-    body("owner_notes").optional().isString(),
-    body("assigned_to").optional().isString()
-  ]
+export const updateValidateMaintenance = [
+  body("status")
+    .isIn(["pending", "in-progress", "resolved"])
+    .withMessage("Invalid status"),
+  body("owner_notes").optional().isString(),
+  body("assigned_to").optional().isString(),
+];
 
+// guestLogValidation
+export const guestLogValidation = [
+  body("guest_name").notEmpty().withMessage("Guest name is required").trim(),
+  body("guest_phone")
+    .matches(/^[0-9+]{10,15}$/)
+    .withMessage("Valid phone number required"),
+  body("visit_purpose")
+    .notEmpty()
+    .withMessage("Purpose of visit is required")
+    .trim(),
+  body("expected_duration")
+    .notEmpty()
+    .withMessage('Duration is required (e.g., "2 hours" or "1 day")'),
+];
 
-  export const guestLogValidation = [
-  body('guest_name').notEmpty().withMessage('Guest name is required').trim(),
-  body('guest_phone').matches(/^[0-9+]{10,15}$/).withMessage('Valid phone number required'),
-  body('visit_purpose').notEmpty().withMessage('Purpose of visit is required').trim(),
-  body('expected_duration').notEmpty().withMessage('Duration is required (e.g., "2 hours" or "1 day")')
+export const validateAvailableSeats = (value: number, req: Request) => {
+  if (value > req.body.total_seats) {
+    throw new Error("Available seats cannot exceed total seats");
+  }
+  return true;
+};
+
+export const studySpaceValidation = [
+  body("name").notEmpty().withMessage("Study space name is required"),
+
+  body("location").notEmpty().withMessage("Location is required"),
+
+  body("total_capacity")
+    .isInt({ min: 1 })
+    .withMessage("Total capacity must be at least 1"),
+
+  body("available_slots")
+    .isInt({ min: 0 })
+    .withMessage("Available slots cannot be negative")
+
+    .custom((value: number, { req }: { req: Request }) =>
+      validateAvailableSeats(value, req as Request)
+    ),
+
+  body("status")
+    .isIn(["open", "closed", "full"])
+    .withMessage("Status must be open, closed, or full"),
+  body("opening_time")
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage("Invalid opening time (HH:MM)"),
+  body("closing_time")
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage("Invalid closing time (HH:MM)"),
 ];
