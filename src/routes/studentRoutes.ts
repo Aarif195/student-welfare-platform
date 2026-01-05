@@ -7,6 +7,7 @@ import {
   paramIdValidation,
   bookingValidation,
   updateProfileValidation,
+  guestLogValidation,
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
@@ -27,23 +28,34 @@ import {
   getAvailableRoomsController,
 } from "../controllers/studentController/studentBookingController";
 
+import { registerGuest } from "../controllers/studentController/studentRegisterGuest";
+
 const router = Router();
 
 // Auth
 router.post(
   "/register",
-   upload.single("profile_image"),
+  upload.single("profile_image"),
   studentRegisterValidation,
   validateResult,
   registerStudentController
 );
-
 
 router.post(
   "/login",
   studentLoginValidation,
   validateResult,
   loginStudentController
+);
+
+// log guess
+router.post(
+  "/log-guest",
+  authenticate,
+  authorize(["student"]),
+  guestLogValidation,
+  validateResult,
+  registerGuest
 );
 
 // Profile

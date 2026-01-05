@@ -168,3 +168,11 @@ export const updateValidateMaintenance =  [
     body("owner_notes").optional().isString(),
     body("assigned_to").optional().isString()
   ]
+
+
+  export const guestLogValidation = [
+  body('guest_name').notEmpty().withMessage('Guest name is required').trim(),
+  body('guest_phone').matches(/^[0-9+]{10,15}$/).withMessage('Valid phone number required'),
+  body('visit_purpose').notEmpty().withMessage('Purpose of visit is required').trim(),
+  body('expected_duration').notEmpty().withMessage('Duration is required (e.g., "2 hours" or "1 day")')
+];
