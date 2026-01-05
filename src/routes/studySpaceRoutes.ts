@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
 import { validateResult } from "../middlewares/validateResult";
-import { paramIdValidation } from "../middlewares/validation";
+import { paramIdValidation, studySpaceValidation } from "../middlewares/validation";
 
 
 import { createStudySpaceController, updateStudySpaceController, deleteStudySpaceController, getAllStudySpacesController,getSingleStudySpaceController } from "../controllers/study-space/studySpaceControllers";
@@ -11,9 +11,11 @@ import { createStudySpaceController, updateStudySpaceController, deleteStudySpac
 const router = Router();
 
 router.post(
-  "/",
+  "/create",
   authenticate,
   authorize(["superadmin"]),
+    studySpaceValidation,
+  validateResult,
   createStudySpaceController
 );
 
