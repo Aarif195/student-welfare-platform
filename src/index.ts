@@ -9,6 +9,8 @@ import notificationsRoutes from "./routes/notificationsRoutes";
 import maintenanceRoutes from "./routes/maintenanceRoutes";
 import studySpaceRoutes from "./routes/studySpaceRoutes";
 import verifyOTPRoutes from "./routes/verifyOTPRoutes";
+import resendOTPRoutes from "./routes/resendOTPRoutes";
+
 
 
 import { connectTODB } from "./config/db";
@@ -33,6 +35,7 @@ app.use("/notifications", notificationsRoutes);
 app.use("/maintenance", maintenanceRoutes);
 app.use("/study-spaces", studySpaceRoutes);
 app.use("/api/auth", verifyOTPRoutes);
+app.use("/api/auth", resendOTPRoutes);
 
 
 

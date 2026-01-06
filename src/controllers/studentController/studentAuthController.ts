@@ -50,12 +50,28 @@ export const registerStudentController = async (
     );
 
     // 4. Send the Email
-    // Assuming your sendEmail helper takes (to, subject, text/html)
     await sendBookingEmail(
-      email,
-      "Verify Your Email",
-      `<p>Your verification code is: ${otp}. It expires in 5 minutes.</p>`
-    );
+  email,
+  "Verify Your Email",
+  `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+    <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+      <h1 style="margin: 0; font-size: 24px;">Confirm Your Email</h1>
+    </div>
+    <div style="padding: 30px; text-align: center; color: #333;">
+      <p style="font-size: 16px;">Welcome! Please use the verification code below to complete your student registration:</p>
+      <div style="margin: 30px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px; display: inline-block;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #4f46e5;">${otp}</span>
+      </div>
+      <p style="font-size: 14px; color: #666;">This code will expire in <b>5 minutes</b>. If you didn't create an account, please ignore this email.</p>
+    </div>
+    <div style="background-color: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #999;">
+      &copy; ${new Date().getFullYear()} Hostel Management System. All rights reserved.
+    </div>
+  </div>
+  `,
+  "Hostel Management"
+);
 
     res.status(201).json({
       success: true,
