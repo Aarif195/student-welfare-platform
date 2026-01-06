@@ -90,6 +90,7 @@ export const updateStudySpaceController = async (
 
 export const deleteStudySpaceController = async () => {};
 
+// getAllStudySpacesController
 export const getAllStudySpacesController = async (
   req: AuthRequest,
   res: Response
@@ -124,4 +125,21 @@ export const getAllStudySpacesController = async (
   }
 };
 
-export const getSingleStudySpaceController = async () => {};
+// getSingleStudySpaceController
+export const getSingleStudySpaceController = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const space = await pool.query(
+      `SELECT * FROM study_spaces WHERE id = $1`,
+      [id]
+    );
+
+   res.status(200).json({
+      success: true,
+      data: space.rows.length > 0 ? space.rows[0] : [],
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
