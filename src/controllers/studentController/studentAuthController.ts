@@ -6,8 +6,7 @@ import {
 } from "../../utils/helper";
 import { pool } from "../../config/db";
 import { sendBookingEmail } from "../../utils/mailer";
-import crypto from 'crypto';
-
+import crypto from "crypto";
 
 // registerStudentController
 export const registerStudentController = async (
@@ -16,7 +15,7 @@ export const registerStudentController = async (
 ) => {
   const { firstName, lastName, email, password, phone } = req.body;
 
-// Get the file path from multer if it exists
+  // Get the file path from multer if it exists
   const profile_image = req.file ? req.file.path : null;
 
   try {
@@ -38,10 +37,9 @@ export const registerStudentController = async (
     const otp = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 5 * 60000); // 5 mins
 
-   
     //2 Insert student
     const result = await pool.query(
-      "INSERT INTO students (firstName, lastName, email, password, phone, profile_image) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, profile_image", 
+      "INSERT INTO students (firstName, lastName, email, password, phone, profile_image) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, profile_image",
       [firstName, lastName, email, hashedPassword, phone, profile_image]
     );
 
@@ -56,17 +54,17 @@ export const registerStudentController = async (
     await sendBookingEmail(
       email,
       "Verify Your Email",
-      `Your verification code is: ${otp}. It expires in 5 minutes.`
+      `<p>Your verification code is: ${otp}. It expires in 5 minutes.</p>`
     );
-    
-   res.status(201).json({
+
+    res.status(201).json({
       success: true,
       message: "Registration successful. Please check your email for the OTP.",
       email: result.rows[0].email,
     });
   } catch (error) {
     console.error("Register error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Server error during registration" });
   }
 };
 
@@ -93,6 +91,13 @@ export const loginStudentController = async (req: Request, res: Response) => {
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
+    }
+
+    if (!user.is_verified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in.",
+      });
     }
 
     // 3. Generate token via helper

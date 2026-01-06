@@ -2,7 +2,6 @@ import { pool } from "../../config/db";
 
 import { Request, Response } from "express";
 
-
 export const verifyOTPController = async (req: Request, res: Response) => {
   const { email, otp_code } = req.body;
 
@@ -22,9 +21,15 @@ export const verifyOTPController = async (req: Request, res: Response) => {
       });
     }
 
-    // 2. Mark student as verified
+    //2 Update students table  as verified
     await pool.query(
       "UPDATE students SET is_verified = true WHERE email = $1",
+      [email]
+    );
+
+    // Update HostelOwners table as verified
+    await pool.query(
+      "UPDATE HostelOwners SET is_verified = true WHERE email = $1",
       [email]
     );
 
