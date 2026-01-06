@@ -19,3 +19,5 @@ export const sendBookingEmail = async (to: string, subject: string, html: string
   return transporter.sendMail(mailOptions);
 };
 
+
+

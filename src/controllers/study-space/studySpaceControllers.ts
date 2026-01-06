@@ -111,7 +111,6 @@ export const deleteStudySpaceController = async (req: AuthRequest, res: Response
   }
 };
 
-
 // getAllStudySpacesController
 export const getAllStudySpacesController = async (
   req: AuthRequest,

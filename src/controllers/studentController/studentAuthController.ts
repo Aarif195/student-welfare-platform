@@ -5,6 +5,9 @@ import {
   generateToken,
 } from "../../utils/helper";
 import { pool } from "../../config/db";
+import { sendBookingEmail } from "../../utils/mailer";
+import crypto from 'crypto';
+
 
 // registerStudentController
 export const registerStudentController = async (
@@ -31,16 +34,35 @@ export const registerStudentController = async (
     // Hash password via helper
     const hashedPassword = await hashPassword(password);
 
-    // Insert student
+    // 1. Generate OTP and Expiry
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60000); // 5 mins
+
+   
+    //2 Insert student
     const result = await pool.query(
       "INSERT INTO students (firstName, lastName, email, password, phone, profile_image) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, profile_image", 
       [firstName, lastName, email, hashedPassword, phone, profile_image]
     );
 
-    res.status(201).json({
+    // 3. Save OTP to email_otps table
+    await pool.query(
+      "INSERT INTO email_otps (email, otp_code, expires_at) VALUES ($1, $2, $3)",
+      [email, otp, expiresAt]
+    );
+
+    // 4. Send the Email
+    // Assuming your sendEmail helper takes (to, subject, text/html)
+    await sendBookingEmail(
+      email,
+      "Verify Your Email",
+      `Your verification code is: ${otp}. It expires in 5 minutes.`
+    );
+    
+   res.status(201).json({
       success: true,
-      message: "Student registered successfully",
-      data: result.rows[0],
+      message: "Registration successful. Please check your email for the OTP.",
+      email: result.rows[0].email,
     });
   } catch (error) {
     console.error("Register error:", error);

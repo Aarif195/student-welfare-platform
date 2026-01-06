@@ -8,6 +8,8 @@ import publicRoutes from "./routes/publicRoutes";
 import notificationsRoutes from "./routes/notificationsRoutes";
 import maintenanceRoutes from "./routes/maintenanceRoutes";
 import studySpaceRoutes from "./routes/studySpaceRoutes";
+import verifyOTPRoutes from "./routes/verifyOTPRoutes";
+
 
 import { connectTODB } from "./config/db";
 
@@ -30,6 +32,8 @@ app.use("/public", publicRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/maintenance", maintenanceRoutes);
 app.use("/study-spaces", studySpaceRoutes);
+app.use("/api/auth", verifyOTPRoutes);
+
 
 
 app.listen(PORT, () => {

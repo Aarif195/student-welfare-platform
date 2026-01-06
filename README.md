@@ -1,7 +1,7 @@
 # Student Welfare & Campus Life Platform
 
 ## Purpose
-This project aims to improve student welfare and campus life by solving real problems such as hostel accommodation, study environment, financial support, and safe campus living.
+This project aims to improve student welfare and campus life by solving real problems such as hostel accommodation, study environment, and safe campus living.
 
 ## Core Module Features
 
@@ -32,6 +32,17 @@ This project aims to improve student welfare and campus life by solving real pro
 - Integrated Data View: Notifications linked directly to request details via SQL Joins for a seamless user experience.
 - Read Receipts: Logic to track and update notification read status.
 
+### Core Module 4: Study Space Availability
+
+This module allows students to view available study spaces across campus while enabling the superadmin to manage these spaces centrally.
+
+- Create study space (superadmin only)
+- Update study space details (superadmin only)
+- Delete study space (superadmin only)
+- Get all study spaces (public / authenticated access)
+- Get study spaces by status and availability
+
+This module integrates seamlessly with the existing role-based architecture and extends the platform beyond accommodation into academic support infrastructure.
 
 ---
 
