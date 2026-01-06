@@ -3,10 +3,20 @@ import { AuthRequest } from "../../middlewares/authMiddleware";
 import { pool } from "../../config/db";
 
 // createStudySpaceController
-export const createStudySpaceController = async (req: AuthRequest, res: Response) => {
-  const { name, location, total_capacity, available_slots, opening_time, closing_time, status } = req.body;
-  const adminId = (req as any).user.id; 
-
+export const createStudySpaceController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const {
+    name,
+    location,
+    total_capacity,
+    available_slots,
+    opening_time,
+    closing_time,
+    status,
+  } = req.body;
+  const adminId = (req as any).user.id;
 
   try {
     const newSpace = await pool.query(
@@ -14,7 +24,16 @@ export const createStudySpaceController = async (req: AuthRequest, res: Response
         (name, location, total_capacity, available_slots, status, opening_time, closing_time, created_by) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
        RETURNING *`,
-      [name, location, total_capacity, available_slots, status, opening_time, closing_time, adminId]
+      [
+        name,
+        location,
+        total_capacity,
+        available_slots,
+        status,
+        opening_time,
+        closing_time,
+        adminId,
+      ]
     );
 
     res.status(201).json({
@@ -28,9 +47,13 @@ export const createStudySpaceController = async (req: AuthRequest, res: Response
 };
 
 // updateStudySpaceController
-export const updateStudySpaceController = async (req: AuthRequest, res: Response) => {
+export const updateStudySpaceController = async (
+  req: AuthRequest,
+  res: Response
+) => {
   const { id } = req.params;
-  const { total_capacity, available_slots, opening_time, closing_time } = req.body;
+  const { total_capacity, available_slots, opening_time, closing_time } =
+    req.body;
   let { status } = req.body;
 
   // Automated logic for status
@@ -52,31 +75,49 @@ export const updateStudySpaceController = async (req: AuthRequest, res: Response
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Space not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Space not found" });
     }
 
     res.status(200).json({ success: true, data: result.rows[0] });
   } catch (error) {
     console.log(error);
-    
+
     res.status(500).json({ success: false, message: "Update failed" });
   }
 };
 
 export const deleteStudySpaceController = async () => {};
 
-export const getAllStudySpacesController = async (req: AuthRequest, res: Response) => {
-  try {
-    const spaces = await pool.query(
-      `SELECT id, name, location, total_capacity, available_slots, status, opening_time, closing_time 
-       FROM study_spaces 
-       ORDER BY created_at DESC`
-    );
+export const getAllStudySpacesController = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  const { status, available } = req.query; 
 
+  let query = `SELECT * FROM study_spaces WHERE 1=1`;
+  const values: any[] = [];
+
+  // Filter by status (open, closed, full)
+  if (status) {
+    values.push(status);
+    query += ` AND status = $${values.length}`;
+  }
+
+  // Filter for only spaces with seats (available=true)
+  if (available === "true") {
+    query += ` AND available_slots > 0`;
+  }
+
+  query += ` ORDER BY created_at DESC`;
+
+  try {
+    const spaces = await pool.query(query, values);
     res.status(200).json({
       success: true,
       count: spaces.rowCount,
-      data: spaces.rows,
+      data: spaces.rows, 
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });

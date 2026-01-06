@@ -46,8 +46,7 @@ router.delete(
 router.get(
   "/",
   authenticate,
-  authorize(["student", "owner", "superadmin"]),
-  
+  authorize(["student", "owner", "superadmin"]), 
   getAllStudySpacesController
 );
 
