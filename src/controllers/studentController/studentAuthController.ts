@@ -51,9 +51,9 @@ export const registerStudentController = async (
 
     // 4. Send the Email
     await sendBookingEmail(
-  email,
-  "Verify Your Email",
-  `
+      email,
+      "Verify Your Email",
+      `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
     <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
       <h1 style="margin: 0; font-size: 24px;">Confirm Your Email</h1>
@@ -70,17 +70,20 @@ export const registerStudentController = async (
     </div>
   </div>
   `,
-  "Hostel Management"
-);
+      "Hostel Management"
+    );
 
     res.status(201).json({
       success: true,
       message: "Registration successful. Please check your email for the OTP.",
       email: result.rows[0].email,
+      role: "Student",
     });
   } catch (error) {
     console.error("Register error:", error);
-    res.status(500).json({ success: false, message: "Server error during registration" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during registration" });
   }
 };
 

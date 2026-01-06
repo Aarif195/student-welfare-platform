@@ -67,6 +67,7 @@ export const ownerRegisterController = async (req: Request, res: Response) => {
       success: true,
       message: "Registration successful. Please verify your email.",
       email: newOwner.rows[0].email,
+      role: "HostelOwner",
     });
   } catch (error) {
     console.log("owners", error);
@@ -114,7 +115,17 @@ export const ownerLoginController = async (req: Request, res: Response) => {
       { expiresIn: "1d" }
     );
 
-    res.status(200).json({ success: true, token });
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: "HostelOwner",
+      },
+    });
   } catch (error) {
     res
       .status(500)
