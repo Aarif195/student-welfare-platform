@@ -91,39 +91,97 @@ export const updateStudySpaceController = async (
 export const deleteStudySpaceController = async () => {};
 
 // getAllStudySpacesController
+// export const getAllStudySpacesController = async (
+//   req: AuthRequest,
+//   res: Response
+// ) => {
+//   const { status, available } = req.query; 
+
+//   let query = `SELECT * FROM study_spaces WHERE 1=1`;
+//   const values: any[] = [];
+
+//   // Filter by status (open, closed, full)
+//   if (status) {
+//     values.push(status);
+//     query += ` AND status = $${values.length}`;
+//   }
+
+//   // Filter for only spaces with seats (available=true)
+//   if (available === "true") {
+//     query += ` AND available_slots > 0`;
+//   }
+
+//   query += ` ORDER BY created_at DESC`;
+
+//   try {
+//     const spaces = await pool.query(query, values);
+//     res.status(200).json({
+//       success: true,
+//       count: spaces.rowCount,
+//       data: spaces.rows, 
+//     });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: "Internal server error" });
+//   }
+// };
+
 export const getAllStudySpacesController = async (
   req: AuthRequest,
   res: Response
 ) => {
-  const { status, available } = req.query; 
+  const { status, available, page = "1", limit = "10" } = req.query;
 
-  let query = `SELECT * FROM study_spaces WHERE 1=1`;
+  const pageNumber = Math.max(Number(page), 1);
+  const limitNumber = Math.min(Math.max(Number(limit), 1), 10);
+  const offset = (pageNumber - 1) * limitNumber;
+
+  let baseQuery = `FROM study_spaces WHERE 1=1`;
   const values: any[] = [];
 
-  // Filter by status (open, closed, full)
   if (status) {
     values.push(status);
-    query += ` AND status = $${values.length}`;
+    baseQuery += ` AND status = $${values.length}`;
   }
 
-  // Filter for only spaces with seats (available=true)
   if (available === "true") {
-    query += ` AND available_slots > 0`;
+    baseQuery += ` AND available_slots > 0`;
   }
 
-  query += ` ORDER BY created_at DESC`;
+  const countResult = await pool.query(
+    `SELECT COUNT(*) ${baseQuery}`,
+    values
+  );
+
+  const total = Number(countResult.rows[0].count);
+  const totalPages = Math.ceil(total / limitNumber);
+
+  values.push(limitNumber, offset);
+
+  const dataQuery = `
+    SELECT *
+    ${baseQuery}
+    ORDER BY created_at DESC
+    LIMIT $${values.length - 1}
+    OFFSET $${values.length}
+  `;
 
   try {
-    const spaces = await pool.query(query, values);
+    const spaces = await pool.query(dataQuery, values);
+
     res.status(200).json({
       success: true,
-      count: spaces.rowCount,
-      data: spaces.rows, 
+      page: pageNumber,
+      limit: limitNumber,
+      total,
+      totalPages,
+     
+      data: spaces.rows,
     });
-  } catch (error) {
+  } catch {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // getSingleStudySpaceController
 export const getSingleStudySpaceController = async (req: AuthRequest, res: Response) => {
