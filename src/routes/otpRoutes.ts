@@ -7,8 +7,11 @@ import { resetPasswordController } from "../controllers/otpManagement/resetPassw
 import { validateResult } from "../middlewares/validateResult";
 import {
   validateForgotPassword,
-  validateResetPassword,validateVerifyOTP
+  validateResetPassword,
+  validateVerifyOTP,
 } from "../middlewares/validation";
+
+import { googleLogin } from "../controllers/auth/googleAuthController";
 
 const router = Router();
 
@@ -18,7 +21,12 @@ router.post(
   validateResult,
   resendOTPController
 );
-router.post("/verify-otp",validateVerifyOTP, validateResult, verifyOTPController);
+router.post(
+  "/verify-otp",
+  validateVerifyOTP,
+  validateResult,
+  verifyOTPController
+);
 
 router.post(
   "/forgot-password",
@@ -33,5 +41,7 @@ router.post(
   validateResult,
   resetPasswordController
 );
+
+router.post("/google-login", googleLogin);
 
 export default router;
