@@ -9,6 +9,8 @@ This project aims to improve student welfare and campus life by solving real pro
 - Student registration and login  
 - Hostel owner registration and login  
 - Email verification system with OTP and resend     functionality 
+- Password recovery system (Forgot Password OTP request)
+- Secure password reset functionality with encryption
 - Hostel and room listing management  
 - Booking system  
 - Admin approval workflow  
