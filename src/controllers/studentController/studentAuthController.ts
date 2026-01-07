@@ -132,7 +132,7 @@ export const loginStudentController = async (req: Request, res: Response) => {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
-        role: "student",
+        role: "Student",
       },
     });
   } catch (error) {

@@ -22,7 +22,7 @@ export const adminLoginController = async (req: Request, res: Response) => {
       { expiresIn: "1d" }
     );
 
-    res.status(200).json({ success: true, token });
+    res.status(200).json({ success: true, token, role:"Superadmin" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }

@@ -265,3 +265,42 @@ export const studySpaceUpdateValidation = [
     .optional()
     .matches(/^([01]\d|2[0-3]):([0-5]\d)$/),
 ];
+
+// validateForgotPassword
+export const validateForgotPassword = [
+  body("email")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+];
+
+// validateVerifyOTP
+export const validateVerifyOTP = [
+  body("email")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+  body("otp_code")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP must be exactly 6 digits"),
+];
+
+// validateResetPassword
+export const validateResetPassword = [
+  body("email")
+    .isEmail()
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
+  ,
+  body("otp_code")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP must be exactly 6 digits"),
+  body("newPassword")
+    .isLength({ min: 8 })
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/
+    )
+    .withMessage(
+      "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character"
+    ),
+];
