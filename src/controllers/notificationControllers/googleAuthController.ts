@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import { OAuth2Client } from "google-auth-library";
 import { pool } from "../../config/db";
 import jwt from "jsonwebtoken";
+import { hashPassword } from "../../utils/helper";
+// import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -31,8 +34,18 @@ export const googleLogin = async (req: Request, res: Response) => {
     );
     let user = userQuery.rows[0];
 
-    // 2. If not, create them (is_verified = true)
-    if (!user) {
+    // 2. Account Linking (Verify existing user)
+    if (user) {
+      if (!user.is_verified) {
+        await pool.query(
+          `UPDATE ${tableName} SET is_verified = true WHERE email = $1`,
+          [email]
+        );
+        user.is_verified = true;
+      }
+    }
+    // 3. If not, create them
+    else {
       if (!phone) {
         return res.status(400).json({
           success: false,
@@ -41,10 +54,14 @@ export const googleLogin = async (req: Request, res: Response) => {
         });
       }
 
+      // Generate a unique random string and hash it
+      const entropy = crypto.randomBytes(16).toString("hex");
+      const securePassword = await hashPassword(entropy);
+
       const newUser = await pool.query(
         `INSERT INTO ${tableName} (firstName, lastName, email, phone, is_verified, password) 
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [firstName, lastName, email, phone, true, "google_authenticated"]
+        [firstName, lastName, email, phone, true, securePassword]
       );
       user = newUser.rows[0];
     }
@@ -58,9 +75,8 @@ export const googleLogin = async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, token, user: { email, name, role } });
   } catch (error) {
-    console.log('Failed error', error);
-    
+    console.log("Failed error", error);
+
     res.status(500).json({ success: false, message: "Authentication failed" });
   }
 };
-

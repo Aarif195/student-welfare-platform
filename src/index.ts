@@ -34,7 +34,6 @@ app.use("/study-spaces", studySpaceRoutes);
 app.use("/api/auth", otpRoutes);
 
 
-
 app.listen(PORT, () => {
     connectTODB()
   console.log(`Server running on port ${PORT}`);
