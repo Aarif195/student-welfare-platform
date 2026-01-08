@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import studentRoutes from "./routes/studentRoutes";
 import ownerRoutes from "./routes/ownerRoutes";
 import hostelRoutes from "./routes/hostelRoutes";
@@ -19,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 // server to serve static files via a URL 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, "../upload")));
 
 
 // Route registration
