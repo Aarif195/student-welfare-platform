@@ -11,7 +11,7 @@ import {
   validateVerifyOTP,
 } from "../middlewares/validation";
 
-import { googleLogin } from "../controllers/notificationControllers/googleAuthController";
+import { googleLogin } from "../controllers/auth/googleAuthController";
 
 const router = Router();
 

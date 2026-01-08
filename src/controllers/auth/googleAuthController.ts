@@ -3,7 +3,6 @@ import { OAuth2Client } from "google-auth-library";
 import { pool } from "../../config/db";
 import jwt from "jsonwebtoken";
 import { hashPassword } from "../../utils/helper";
-// import crypto from 'crypto';
 import * as crypto from 'crypto';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

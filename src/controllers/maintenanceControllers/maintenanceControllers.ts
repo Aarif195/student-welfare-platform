@@ -55,7 +55,7 @@ export const createMaintenanceRequest = async (
   }
 };
 
-// getMaintenanceRequests
+// getMaintenanceRequests Students Owner Admin
 export const getMaintenanceRequests = async (
   req: AuthRequest,
   res: Response
@@ -98,7 +98,7 @@ export const getMaintenanceRequests = async (
   }
 };
 
-// updateMaintenanceStatus
+// updateMaintenanceStatus Owner & Admin
 export const updateMaintenanceStatus = async (
   req: AuthRequest,
   res: Response

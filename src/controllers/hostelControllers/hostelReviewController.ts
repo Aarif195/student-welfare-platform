@@ -35,12 +35,10 @@ export const createStudentReviewController = async (
     );
 
     if (existing.rowCount! > 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "You have already reviewed this hostel.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "You have already reviewed this hostel.",
+      });
     }
 
     // 3. Insert review
@@ -103,14 +101,14 @@ export const getHostelReviewsController = async (
 
     const result = await pool.query(query, params);
 
-    if (result.rowCount === 0 && role === "owner") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Unauthorized or no reviews found for this hostel.",
-        });
-    }
+    // if (result.rowCount === 0 && role === "owner") {
+    //   return res
+    //     .status(403)
+    //     .json({
+    //       success: false,
+    //       message: "Unauthorized to see reviews for this hostel.",
+    //     });
+    // }
 
     res.status(200).json({ success: true, data: result.rows });
   } catch (error: any) {
@@ -124,8 +122,7 @@ export const replyToReviewController = async (req: Request, res: Response) => {
   const { reply } = req.body;
   const user_id = (req as any).user.id;
   const role = (req as any).user.role;
-console.log( "Current User Role:", role);
-
+  console.log("Current User Role:", role);
 
   try {
     if (role === "owner") {
@@ -138,13 +135,11 @@ console.log( "Current User Role:", role);
       );
 
       if (ownershipCheck.rowCount === 0) {
-        return res
-          .status(403)
-          .json({
-            success: false,
-            message:
-              "Unauthorized: You can only reply to reviews for your own hostels.",
-          });
+        return res.status(403).json({
+          success: false,
+          message:
+            "Unauthorized: You can only reply to reviews for your own hostels.",
+        });
       }
 
       // 2. Update owner reply
@@ -152,14 +147,13 @@ console.log( "Current User Role:", role);
         `UPDATE Reviews SET owner_reply = $1, owner_replied_at = CURRENT_TIMESTAMP WHERE id = $2`,
         [reply, reviewId]
       );
-
     } else if (role === "superadmin") {
-      console.log("Admin is replying to review:", reviewId); // Add this
+      console.log("Admin is replying to review:", reviewId); 
       const adminResult = await pool.query(
         `UPDATE Reviews SET admin_reply = $1, admin_replied_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
         [reply, reviewId]
       );
-      console.log("Database Update Result:", adminResult.rows[0]); // Add this
+      console.log("Database Update Result:", adminResult.rows[0]);
     }
 
     res

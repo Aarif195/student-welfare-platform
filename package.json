@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "npx ts-node src/index.ts",
+    "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "watch": "npx ts-node testConnection.ts",
-    "admin": "npx ts-node src/scripts/createAdmin.ts"
+    "admin": "npx ts-node src/scripts/createAdmin.ts",
+    "build": "tsc"
   },
   "keywords": [
     "Node.js",
