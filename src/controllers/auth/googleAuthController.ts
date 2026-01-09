@@ -33,7 +33,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     );
     let user = userQuery.rows[0];
 
-    // 2. Account Linking (Verify existing user)
+    // 2. Account Linking (Verify existing user) but has not been verify with OTP
     if (user) {
       if (!user.is_verified) {
         await pool.query(

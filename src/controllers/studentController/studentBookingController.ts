@@ -5,13 +5,14 @@ import { verifyPayment } from "../../utils/helper";
 
 // bookRoomController
 export const bookRoomController = async (req: AuthRequest, res: Response) => {
-  const { room_id, reference, start_date, end_date } = req.body;
+  
+  const { room_id, reference } = req.body;
   const student_id = (req as any).user.id;
 
   try {
     // 1. Check if room is available
     const roomCheck = await pool.query(
-      "SELECT price, availability FROM Rooms WHERE id = $1",
+      "SELECT price, availability, duration_months FROM Rooms WHERE id = $1",
       [room_id]
     );
 
@@ -32,10 +33,15 @@ export const bookRoomController = async (req: AuthRequest, res: Response) => {
     }
 
     // 3. Create Booking & Payment Record (Transaction)
+    const duration = roomCheck.rows[0].duration_months || 12;
+    const startDate = new Date(); // Today
+    const endDate = new Date();
+    endDate.setMonth(startDate.getMonth() + duration);
+
     const booking = await pool.query(
       `INSERT INTO Bookings (student_id, room_id, price, start_date, end_date, booking_status) 
        VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`,
-      [student_id, room_id, roomPrice, start_date, end_date]
+      [student_id, room_id, roomPrice, startDate, endDate]
     );
 
     const booking_id = booking.rows[0].id;
@@ -90,7 +96,7 @@ export const getMyBookingsController = async (
 // cancelBookingController
 export const cancelBookingController = async (req: Request, res: Response) => {
   const { bookingId } = req.params;
- const student_id = (req as any).user.id;
+  const student_id = (req as any).user.id;
 
   const client = await pool.connect();
 
@@ -108,8 +114,10 @@ export const cancelBookingController = async (req: Request, res: Response) => {
       throw new Error("Booking not found");
     }
 
-    if (checkRes.rows[0].booking_status !== 'pending') {
-      throw new Error("Only pending bookings can be cancelled. Please contact admin.");
+    if (checkRes.rows[0].booking_status !== "pending") {
+      throw new Error(
+        "Only pending bookings can be cancelled. Please contact admin."
+      );
     }
 
     // 2. Update Booking status to cancelled
@@ -131,7 +139,7 @@ export const cancelBookingController = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "Booking cancelled successfully",
-      data: { ...bookingRes.rows[0], ...paymentRes.rows[0] }
+      data: { ...bookingRes.rows[0], ...paymentRes.rows[0] },
     });
   } catch (error: any) {
     await client.query("ROLLBACK");

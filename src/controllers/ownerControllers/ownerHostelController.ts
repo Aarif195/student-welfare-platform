@@ -325,7 +325,7 @@ export const deleteRoomController = async (req: Request, res: Response) => {
 // createRoomController
 export const createRoomController = async (req: Request, res: Response) => {
   const { hostelId } = req.params;
-  const { room_number, capacity, price } = req.body;
+  const { room_number, capacity, price , duration_months} = req.body;
   const owner_id = (req as any).user.id;
 
 // Multer puts multiple files in req.files
@@ -361,9 +361,9 @@ export const createRoomController = async (req: Request, res: Response) => {
 
     // 2. Create the room
     const newRoom = await pool.query(
-      `INSERT INTO Rooms (hostel_id, room_number, capacity, price, images) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [hostelId, room_number, capacity, price, imagePaths]
+      `INSERT INTO Rooms (hostel_id, room_number, capacity, price, images, duration_months) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [hostelId, room_number, capacity, price, imagePaths, duration_months || 12]
     );
 
     res.status(201).json({ success: true, data: newRoom.rows[0] });

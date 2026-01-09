@@ -78,21 +78,9 @@ export const ownerLoginValidation = [
 ];
 
 // BOOKING VALIDATION
-const endDateValidator = (value: string, { req }: { req: Request }) => {
-  if (new Date(value) <= new Date(req.body.start_date)) {
-    throw new Error("End date must be after start date");
-  }
-  return true;
-};
-
 export const bookingValidation = [
   body("room_id").notEmpty().withMessage("Room ID is required"),
   body("reference").notEmpty().withMessage("Payment reference is required"),
-  body("start_date").isISO8601().withMessage("Start date must be a valid date"),
-  body("end_date")
-    .isISO8601()
-    .withMessage("End date must be a valid date")
-    .custom(endDateValidator),
 ];
 
 // REVIEW VALIDATION
@@ -291,7 +279,6 @@ export const validateResetPassword = [
     .isEmail()
     .withMessage("Valid email is required")
     .normalizeEmail(),
-  ,
   body("otp_code")
     .isLength({ min: 6, max: 6 })
     .withMessage("OTP must be exactly 6 digits"),

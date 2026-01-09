@@ -11,7 +11,7 @@ import {
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
-
+// rm -rf dist/
 import {
   registerStudentController,
   loginStudentController,
@@ -21,8 +21,8 @@ import {
   updateStudentProfileController,
 } from "../controllers/studentController/studentProfileController";
 import {
-  getMyBookingsController,
   bookRoomController,
+  getMyBookingsController,
   cancelBookingController,
   getAllAvailableHostelsController,
   getAvailableRoomsController,
@@ -31,6 +31,8 @@ import {
 import { registerGuest } from "../controllers/studentController/studentRegisterGuest";
 
 const router = Router();
+console.log("studentRoutes loaded");
+
 
 // Auth
 router.post(
@@ -104,8 +106,6 @@ router.post(
   "/bookings",
   authenticate,
   authorize(["student"]),
-  bookingValidation,
-  validateResult,
   bookRoomController
 );
 
