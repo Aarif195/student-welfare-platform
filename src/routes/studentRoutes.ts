@@ -11,7 +11,6 @@ import {
 } from "../middlewares/validation";
 import { authenticate } from "../middlewares/authMiddleware";
 import { authorize } from "../middlewares/roleMiddleware";
-// rm -rf dist/
 import {
   registerStudentController,
   loginStudentController,
@@ -106,6 +105,8 @@ router.post(
   "/bookings",
   authenticate,
   authorize(["student"]),
+  bookingValidation,
+  validateResult,
   bookRoomController
 );
 
