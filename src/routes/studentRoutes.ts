@@ -30,7 +30,6 @@ import {
 import { registerGuest } from "../controllers/studentController/studentRegisterGuest";
 
 const router = Router();
-console.log("studentRoutes loaded");
 
 
 // Auth

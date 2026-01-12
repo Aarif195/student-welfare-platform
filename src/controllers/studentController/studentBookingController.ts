@@ -34,7 +34,7 @@ export const bookRoomController = async (req: AuthRequest, res: Response) => {
 
     // 3. Create Booking & Payment Record (Transaction)
     const duration = roomCheck.rows[0].duration_months || 12;
-    const startDate = new Date(); // Today
+    const startDate = new Date(); 
     const endDate = new Date();
     endDate.setMonth(startDate.getMonth() + duration);
 

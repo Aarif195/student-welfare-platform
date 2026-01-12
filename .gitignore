@@ -2,3 +2,4 @@ node_modules
 .env
 testConnection.ts
 dist/
+src/scripts/createAdmin.ts

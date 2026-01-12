@@ -4,9 +4,6 @@ export const sendBookingEmail = async (
   html: string,
   senderName: string = "Hostel Management"
 ) => {
-  
-  console.log("Checking API Key exists:", !!process.env.BREVO_API_KEY);
-
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -28,8 +25,8 @@ export const sendBookingEmail = async (
   const data = await response.json();
   
   if (!response.ok) {
-    console.error("Brevo API Error Details:", data); // This will tell us exactly why it failed
-    throw new Error("Failed to send email via Brevo API");
+    console.error("Brevo API Error Details:", data); 
+    throw new Error(`Email failed: ${data.message || response.statusText}`);
   }
 
   return data;

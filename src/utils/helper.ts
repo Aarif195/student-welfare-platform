@@ -21,7 +21,7 @@ export const generateToken = (id: number, role: string): string => {
 
 // paymentUtility
 export const verifyPayment = async (reference: string): Promise<boolean> => {
-  // Logic for external API call (Paystack/Flutterwave) goes here later
+  // Logic for external API call (Paystack/Flutterwave) comes here later
   return true; 
 };
 

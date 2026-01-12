@@ -50,7 +50,6 @@ export const registerStudentController = async (
     );
 
     // 4. Send the Email
-    
     await sendBookingEmail(
       email,
       "Verify Your Email",
