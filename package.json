@@ -17,7 +17,7 @@
   ],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Student Welfare & Campus Life Platform is a backend-driven system built to manage and secure key aspects of campus life such as hostel accommodation, student onboarding, and identity verification. It uses a role-based architecture for students and hostel owners, enforcing strong data integrity and access control. The platform implements secure authentication, email-based OTP verification, and PostgreSQL persistence to ensure every user action is validated and traceable. It is designed with a server-first trust model where all sensitive operations are controlled and verified at the backend.",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
